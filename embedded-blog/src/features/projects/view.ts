@@ -8,7 +8,7 @@ export function renderProjects(): string {
       ${projectItems
         .map(
           (item) => `
-        <article class="card reveal project-card">
+        <article class="card project-card">
           <img src="${item.gallery[0]}" alt="${item.title}" loading="lazy"/>
           <h3>${item.title}</h3>
           <p>${item.summary}</p>

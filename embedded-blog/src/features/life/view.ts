@@ -5,19 +5,19 @@ export function renderLife(): string {
   const tags = [...new Set(lifePosts.map((post) => post.tag))];
   return `
   <section class="container section">
-    <h2 class="reveal">ä¸ªäººåˆ†äº«</h2>
-    <p class="reveal page-intro">è¿™é‡Œè®°å½•ç”Ÿæ´»ã€æ‘„å½±ã€é˜…è¯»å’Œæ—¥å¸¸çš„å°çµæ„Ÿã€‚</p>
+    <h2 class="reveal">¸öÈË·ÖÏí</h2>
+    <p class="reveal page-intro">ÕâÀï¼ÇÂ¼Éú»î¡¢ÉãÓ°¡¢ÔÄ¶ÁºÍÈÕ³£µÄĞ¡Áé¸Ğ¡£</p>
     <div class="filter reveal" id="lifeFilter">
-      <button class="active" data-life-filter="all">å…¨éƒ¨</button>
+      <button class="active" data-life-filter="all">È«²¿</button>
       ${tags.map((tag) => `<button data-life-filter="${tag}">${tag}</button>`).join("")}
     </div>
     <div class="grid-two life-grid">
       ${lifePosts
         .map(
           (post) => `
-          <article class="card reveal life-card" data-tag="${post.tag}">
+          <article class="card life-card" data-tag="${post.tag}">
             <img src="${post.cover}" alt="${post.title}" loading="lazy" />
-            <div class="life-meta">${post.date} Â· ${post.tag}</div>
+            <div class="life-meta">${post.date} ¡¤ ${post.tag}</div>
             <h3>${post.title}</h3>
             <p>${post.summary}</p>
           </article>
