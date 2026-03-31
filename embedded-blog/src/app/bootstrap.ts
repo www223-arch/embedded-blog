@@ -40,8 +40,20 @@ function shellTemplate(): string {
 function bindNav(): void {
   const nav = document.getElementById("nav");
   if (!nav) return;
-  nav.innerHTML = getNavModules()
-    .map((m) => `<button data-route="${m.key}">${m.label}</button>`)
+  const iconMap: Record<string, string> = {
+    home: "⌂",
+    docs: "◫",
+    projects: "✦",
+    life: "✿",
+    board: "✎"
+  };
+  nav.innerHTML = [
+    `<button data-route="home" class="nav-home nav-pill"><span class="nav-icon">${iconMap.home}</span><span>回到首页</span></button>`,
+    ...getNavModules().map(
+      (m) =>
+        `<button data-route="${m.key}" class="nav-pill nav-${m.key}"><span class="nav-icon">${iconMap[m.key] || "•"}</span><span>${m.label}</span></button>`
+    )
+  ]
     .join("");
   nav.querySelectorAll("button").forEach((btn) => {
     btn.addEventListener("click", () => navigate(btn.getAttribute("data-route") as RouteKey));
@@ -50,9 +62,14 @@ function bindNav(): void {
 
 function renderRoute(route: RouteKey): void {
   const view = document.getElementById("view");
+  const header = document.querySelector<HTMLElement>(".site-header");
   if (!view) return;
   const current = getModule(route);
   if (!current) return;
+  if (header) {
+    header.classList.toggle("liquid-nav", route !== "home" && route !== "playground");
+    header.classList.toggle("header-hidden", route === "playground");
+  }
   document.title = `Embedded Blog | ${current.title}`;
   view.innerHTML = current.render();
   animateViewEnter(view);

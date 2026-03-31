@@ -48,12 +48,15 @@ export function mountPaperCornerEasterEgg(): void {
 }
 
 function triggerOpen(corner: HTMLElement): void {
+  if ("vibrate" in navigator) navigator.vibrate([30, 35, 30]);
+  corner.classList.add("paper-corner-shake");
   gsap.to(corner, {
     scale: 1.12,
     opacity: 0,
     duration: 0.28,
     onComplete: () => {
       navigate("playground");
+      corner.classList.remove("paper-corner-shake");
       gsap.set(corner, { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 });
     }
   });

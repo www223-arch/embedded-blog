@@ -1,12 +1,12 @@
 :root {
-  --bg-0: #f4f7fc;
-  --bg-1: #e9eef7;
+  --bg-0: #eef4ff;
+  --bg-1: #e4edff;
   --surface: #ffffff;
   --surface-soft: #f7faff;
   --text: #131a25;
   --muted: #647287;
   --line: #d4dfef;
-  --accent: #3d73f2;
+  --accent: #4678f4;
   --accent-soft: #e5edff;
   --play-accent: #ff8a4c;
   --shadow: 0 10px 30px rgba(12, 22, 36, 0.1);
@@ -21,8 +21,9 @@ body {
   font-family: Inter, "Segoe UI", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 10% 10%, #fdfefe, transparent 28%),
-    radial-gradient(circle at 88% 8%, #e8f0ff, transparent 32%),
+    radial-gradient(circle at 8% 8%, #ffffff, transparent 32%),
+    radial-gradient(circle at 86% 4%, #dce8ff, transparent 34%),
+    radial-gradient(circle at 50% 120%, #f6ecff, transparent 36%),
     linear-gradient(180deg, var(--bg-0), var(--bg-1));
 }
 
@@ -38,6 +39,17 @@ body {
   border-bottom: 1px solid var(--line);
   background: rgba(241, 246, 253, 0.86);
   backdrop-filter: blur(10px);
+}
+
+.site-header.liquid-nav {
+  border-bottom-color: rgba(205, 220, 244, 0.55);
+  background: linear-gradient(130deg, rgba(255, 255, 255, 0.58), rgba(230, 240, 255, 0.44));
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(40, 75, 140, 0.12);
+}
+
+.site-header.header-hidden {
+  display: none;
 }
 
 .nav {
@@ -56,8 +68,13 @@ body {
 
 #nav {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(188, 204, 232, 0.75);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.62), rgba(232, 241, 255, 0.52));
+  box-shadow: 0 10px 22px rgba(70, 120, 244, 0.1);
 }
 
 #nav button {
@@ -65,15 +82,79 @@ body {
   background: #fff;
   color: var(--muted);
   border-radius: 999px;
-  padding: 7px 13px;
+  padding: 8px 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.24s ease, color 0.24s ease;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  isolation: isolate;
+}
+
+#nav button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.72) 45%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.65s ease;
+  z-index: -1;
+}
+
+#nav button:hover::before {
+  transform: translateX(120%);
+}
+
+#nav button:hover {
+  transform: translateY(-2px);
+}
+
+.nav-icon {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+#nav .nav-home {
+  border-color: rgba(71, 121, 246, 0.45);
+  color: #2c56b8;
+  background: linear-gradient(130deg, rgba(226, 236, 255, 0.92), rgba(208, 223, 255, 0.78));
+}
+
+#nav .nav-docs {
+  border-color: #ced8eb;
+  background: #ffffff;
+  color: #5e6a7e;
+}
+
+#nav .nav-projects {
+  border-color: rgba(120, 102, 255, 0.34);
+  background: linear-gradient(130deg, rgba(235, 231, 255, 0.95), rgba(222, 233, 255, 0.84));
+  color: #4b46a3;
+}
+
+#nav .nav-life {
+  border-color: rgba(255, 125, 175, 0.32);
+  background: linear-gradient(130deg, rgba(255, 236, 246, 0.95), rgba(238, 240, 255, 0.88));
+  color: #9a3f7f;
+}
+
+#nav .nav-board {
+  border-color: rgba(255, 171, 96, 0.36);
+  background: linear-gradient(130deg, rgba(255, 243, 230, 0.95), rgba(255, 232, 214, 0.9));
+  color: #9a5a2f;
 }
 
 #nav button.active {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: transparent;
+  background: linear-gradient(135deg, #4c7ff8, #6f8bff 46%, #9a78ff);
   color: #fff;
+  box-shadow: 0 8px 20px rgba(91, 113, 252, 0.34);
+}
+
+#nav button.active .nav-icon {
+  opacity: 1;
 }
 
 main {
@@ -364,6 +445,18 @@ main {
   background: linear-gradient(145deg, #fff6ea, #ffcfa7);
 }
 
+.paper-corner-shake {
+  animation: cornerShake 0.26s ease-in-out 2;
+}
+
+@keyframes cornerShake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-2px, -2px) rotate(-1.5deg); }
+  50% { transform: translate(2px, 1px) rotate(1.5deg); }
+  75% { transform: translate(-1px, -2px) rotate(-1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
 .footer {
   padding: 20px 0 36px;
   color: var(--muted);
@@ -371,6 +464,16 @@ main {
 }
 
 @media (max-width: 860px) {
+  #nav {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  #nav button {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+
   .grid-two {
     grid-template-columns: 1fr;
   }
