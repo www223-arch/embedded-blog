@@ -17,9 +17,9 @@ export function renderDocs(): string {
     .join("");
   return `
   <section class="container section">
-    <h2 class="reveal">¼¼ÊõÎÄµµ</h2>
+    <h2 class="reveal">æŠ€æœ¯æ–‡æ¡£</h2>
     <div class="filter reveal" id="docFilter">
-      <button class="active" data-filter="all">È«²¿</button>
+      <button class="active" data-filter="all">å…¨éƒ¨</button>
       ${categories.map((c) => `<button data-filter="${c}">${c}</button>`).join("")}
     </div>
     <div class="grid-two" id="docGrid">${cards}</div>
