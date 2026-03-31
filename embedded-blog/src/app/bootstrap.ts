@@ -35,7 +35,9 @@ function shellTemplate(): string {
     </div>
   </header>
   <main id="view"></main>
-  <footer class="container footer">© ${new Date().getFullYear()} WL | Built with Vite + TypeScript</footer>
+  <footer class="footer">
+    <div class="container">© ${new Date().getFullYear()} WL | Built with Vite + TypeScript</div>
+  </footer>
   `;
 }
 
@@ -63,7 +65,7 @@ function bindNav(): void {
     btn.addEventListener("click", () => navigate(btn.getAttribute("data-route") as RouteKey));
     bindMagnetic(btn);
   });
-  bindHeaderRefraction();
+  // bindHeaderRefraction();
 }
 
 function renderRoute(route: RouteKey): void {
