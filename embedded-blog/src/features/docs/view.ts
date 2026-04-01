@@ -32,7 +32,6 @@ export function renderDocs(): string {
   return `
   <div class="page-wrapper docs-page">
     <section class="container section">
-      <h2 class="reveal">技术文档</h2>
     <div class="filter reveal" id="docFilter">
       <button class="active" data-filter="all">全部</button>
       ${categories.map((c) => `<button data-filter="${c}">${c}</button>`).join("")}

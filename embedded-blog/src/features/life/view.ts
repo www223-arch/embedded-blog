@@ -15,26 +15,27 @@ export function renderLife(): string {
       <button class="bg-nav-btn next" id="nextBg">&gt;</button>
     </div>
     <section class="container section life-content">
-      <h2 class="reveal">个人分享</h2>
-    <p class="reveal page-intro">这里记录生活、摄影、阅读和日常的小灵感。</p>
-    <div class="filter reveal" id="lifeFilter">
-      <button class="active" data-life-filter="all">全部</button>
-      ${tags.map((tag) => `<button data-life-filter="${tag}">${tag}</button>`).join("")}
-    </div>
-    <div class="grid-two life-grid">
-      ${lifePosts
-        .map(
-          (post) => `
-          <article class="card life-card" data-tag="${post.tag}" data-id="${post.id}">
-            <img src="${post.cover}" alt="${post.title}" loading="lazy" />
-            <div class="life-meta">${post.date} · ${post.tag}</div>
-            <h3>${post.title}</h3>
-            <p>${post.summary}</p>
-          </article>
-        `
-        )
-        .join("")}
+      <div class="life-header">
+        <p class="reveal page-intro">这里记录生活、摄影、阅读和日常的小灵感。</p>
+        <div class="filter reveal" id="lifeFilter">
+          <button class="active" data-life-filter="all">全部</button>
+          ${tags.map((tag) => `<button data-life-filter="${tag}">${tag}</button>`).join("")}
+        </div>
       </div>
+      <div class="grid-two life-grid">
+        ${lifePosts
+          .map(
+            (post) => `
+            <article class="card life-card" data-tag="${post.tag}" data-id="${post.id}">
+              <img src="${post.cover}" alt="${post.title}" loading="lazy" />
+              <div class="life-meta">${post.date} · ${post.tag}</div>
+              <h3>${post.title}</h3>
+              <p>${post.summary}</p>
+            </article>
+          `
+          )
+          .join("")}
+        </div>
     </section>
     <div id="lifeModal" class="modal" style="display: none;">
       <div class="modal-content">
@@ -49,6 +50,9 @@ export function renderLife(): string {
 export function bindLifeFilter(): void {
   const filter = document.getElementById("lifeFilter");
   const grid = document.querySelector<HTMLElement>(".life-grid");
+  const siteHeader = document.querySelector<HTMLElement>(".site-header");
+  const lifeCards = document.querySelectorAll<HTMLElement>(".life-card");
+  
   if (!filter || !grid) return;
   filter.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
@@ -144,6 +148,82 @@ export function bindLifeFilter(): void {
     // 初始化显示并启动自动轮播
     showSlide(0);
     startAutoSlide();
+  }
+  
+  // ============================================
+  // 滚动定格效果逻辑
+  // ============================================
+  const lifeHeader = document.querySelector<HTMLElement>('.life-header');
+  
+  if (siteHeader && lifeHeader) {
+    // 首先显示页头（因为首页可能隐藏了它）
+    siteHeader.style.display = 'block';
+    
+    let isFixed = false;
+    let initialOffsetTop = 0;
+    let headerHeight = 0;
+    let lifeHeaderHeight = 0;
+    
+    // 计算初始位置和高度
+    function calculateInitialPositions() {
+      // 确保元素未固定
+      lifeHeader.classList.remove('fixed');
+      siteHeader.classList.remove('header-fixed');
+      
+      // 计算初始位置和高度
+      const rect = lifeHeader.getBoundingClientRect();
+      initialOffsetTop = rect.top + window.scrollY;
+      headerHeight = 56; // 固定值，与CSS中的top值一致
+      lifeHeaderHeight = rect.height;
+    }
+    
+    // 创建占位符元素
+    const placeholder = document.createElement('div');
+    placeholder.style.display = 'none';
+    placeholder.style.height = '0';
+    lifeHeader.parentNode?.insertBefore(placeholder, lifeHeader.nextSibling);
+    
+    // 初始计算
+    calculateInitialPositions();
+    
+    function updateScroll() {
+      const scrollY = window.scrollY;
+      
+      // 顶部导航固定
+      if (scrollY > 100) {
+        siteHeader.classList.add('header-fixed');
+      } else {
+        siteHeader.classList.remove('header-fixed');
+      }
+      
+      // 个人分享页头固定
+      const triggerPoint = initialOffsetTop - headerHeight;
+      
+      if (scrollY > triggerPoint && !isFixed) {
+        // 固定页头
+        lifeHeader.classList.add('fixed');
+        // 设置占位符高度为页头原始高度
+        placeholder.style.display = 'block';
+        placeholder.style.height = lifeHeaderHeight + 'px';
+        isFixed = true;
+      } else if (scrollY <= triggerPoint && isFixed) {
+        // 取消固定
+        lifeHeader.classList.remove('fixed');
+        placeholder.style.display = 'none';
+        placeholder.style.height = '0';
+        isFixed = false;
+      }
+    }
+    
+    // 初始更新
+    updateScroll();
+    
+    // 滚动事件监听
+    window.addEventListener('scroll', updateScroll, { passive: true });
+    window.addEventListener('resize', () => {
+      calculateInitialPositions();
+      updateScroll();
+    }, { passive: true });
   }
 }
 

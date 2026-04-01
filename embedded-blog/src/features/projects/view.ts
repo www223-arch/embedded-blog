@@ -4,7 +4,6 @@ export function renderProjects(): string {
   return `
   <div class="page-wrapper projects-page">
     <section class="container section">
-      <h2 class="reveal">项目作品</h2>
       <div class="grid-two">
       ${projectItems
         .map(

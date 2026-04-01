@@ -403,13 +403,11 @@ main {
   position: sticky;
   top: 90px;
   z-index: 20;
-  background: rgba(10, 10, 15, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 10px 0;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  opacity: 1;
 }
 
 .filter button {
@@ -1201,4 +1199,183 @@ body:has(#view.home) .site-header {
 
 .stage-card:nth-child(4) {
   transition-delay: 0.4s;
+}
+
+/* ============================================
+   个人分享页面滚动定格加遮罩效果样式
+   ============================================ */
+
+/* 个人分享页面整体容器 */
+.life-page {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* 内容容器 - 整体初始在下半段 */
+.life-content-wrapper {
+  position: relative;
+  padding-top: 60vh;
+  z-index: 11;
+}
+
+/* 内容区域 */
+.life-content {
+  padding-bottom: 100px;
+  position: relative;
+  z-index: 11;
+}
+
+/* 个人分享页面页头 */
+.life-page-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 0;
+  z-index: 20;
+  transition: none;
+}
+
+.life-page-header.header-sticky {
+  position: fixed;
+  top: 66px;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 16px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 页头占位符 */
+.life-page-header-placeholder {
+  height: auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* 页头固定时的样式 */
+.life-page .site-header.header-fixed {
+  position: fixed !important;
+  top: 0 !important;
+  display: block !important;
+  z-index: 25;
+}
+
+/* 卡片的特殊样式 - 背景保持透明 */
+.life-card {
+  position: relative;
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  overflow: visible !important;
+}
+
+.life-card:hover {
+  background: rgba(10, 10, 15, 0.6) !important;
+}
+
+/* 卡片文字包装器 - 用于实现部分淡化效果 */
+.life-card .card-text-wrapper {
+  position: relative;
+  z-index: 2;
+}
+
+/* 正常文字层 */
+.life-card .card-text-normal {
+  position: relative;
+  z-index: 1;
+}
+
+/* 淡化文字层 - 用于显示越过页头部分的文字 */
+.life-card .card-text-faded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+}
+
+.life-card .card-text-faded * {
+  color: rgba(255, 255, 255, 0.15) !important;
+  text-shadow: none !important;
+}
+
+/* 当需要显示淡化文字时添加的类 */
+.life-card.has-fade .card-text-faded {
+  opacity: 1;
+}
+
+.life-page-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.8rem;
+}
+
+.life-page-header .page-intro {
+  margin: 0 0 12px 0;
+}
+
+.life-page-header .filter {
+  margin: 0;
+  position: relative;
+  top: auto;
+}
+
+/* 个人分享页面 */
+.life-page {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* 内容区域 */
+.life-content {
+  margin-top: 75vh;
+  padding-bottom: 100px;
+  position: relative;
+  z-index: 11;
+}
+
+/* 页头区域 */
+.life-header {
+  position: relative;
+  z-index: 20;
+  margin-bottom: 30px;
+}
+
+/* 卡片样式 */
+.life-card {
+  position: relative;
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  overflow: visible !important;
+  margin-bottom: 30px;
+}
+
+.life-card:hover {
+  background: rgba(10, 10, 15, 0.6) !important;
+}
+
+
+
+/* 固定页头样式 */
+.life-header.fixed {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 21;
+  box-sizing: border-box;
+  background: transparent;
+  border-bottom: none;
+}
+
+.life-header.fixed .container {
+  width: min(1100px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 0;
 }

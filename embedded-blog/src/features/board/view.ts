@@ -6,7 +6,6 @@ export function renderBoard(): string {
   return `
   <div class="page-wrapper board-page">
     <section class="container section">
-      <h2 class="reveal">留言板</h2>
     <p class="reveal page-intro">欢迎留下你的想法、建议或一句问候。</p>
     <form id="boardForm" class="card reveal board-form">
       <input id="boardName" maxlength="20" placeholder="你的昵称" required />
