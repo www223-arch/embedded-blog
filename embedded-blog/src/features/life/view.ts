@@ -127,17 +127,27 @@ export function bindLifeFilter(): void {
       if (index < 0) index = totalSlides - 1;
       if (index >= totalSlides) index = 0;
       
+      const prevIndex = currentIndex;
+      
       // 移除所有激活状态
       slides.forEach((slide, i) => {
-        slide.classList.remove("active", "prev", "next");
-        if (i === index) {
-          slide.classList.add("active");
-        } else if (i === (index - 1 + totalSlides) % totalSlides) {
-          slide.classList.add("prev");
-        } else if (i === (index + 1) % totalSlides) {
-          slide.classList.add("next");
-        }
+        slide.classList.remove("active");
       });
+      
+      // 先让新图片显示（在最上层）
+      slides[index].classList.add("active");
+      
+      // 如果之前有激活的图片且不是同一张，确保它在下层保持显示直到过渡完成
+      if (prevIndex !== index) {
+        slides[prevIndex].style.opacity = '1';
+        slides[prevIndex].style.zIndex = '1';
+        
+        // 延迟后让旧图片淡出
+        setTimeout(() => {
+          slides[prevIndex].style.opacity = '';
+          slides[prevIndex].style.zIndex = '';
+        }, 50);
+      }
       
       currentIndex = index;
     }
@@ -151,7 +161,7 @@ export function bindLifeFilter(): void {
       // 重新设置定时器
       autoSlideInterval = setInterval(() => {
         showSlide(currentIndex + 1);
-      }, 8000); // 每8秒切换一次
+      }, 4500); // 每3秒切换一次
     }
     
     // 手动切换

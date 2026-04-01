@@ -1273,7 +1273,7 @@ main {
   padding: 0;
 }
 
-/* ????? */
+/* 背景图片项 */
 .bg-slide {
   position: absolute;
   top: -50px;
@@ -1284,32 +1284,30 @@ main {
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
-  transform: translateX(100%);
   margin: 0;
   padding: 0;
+  /* 默认隐藏，准备淡入 */
+  transition: opacity 1.2s ease-in-out;
+  z-index: 1;
 }
 
-/* ??????? */
+/* 当前激活的背景 - 淡入显示 */
 .bg-slide.active {
   opacity: 1;
-  transform: translateX(0);
   z-index: 3;
 }
 
-/* ???? */
-.bg-slide.prev {
-  opacity: 0.3;
-  transform: translateX(-100%);
-  z-index: 2;
-}
-
-/* ???? */
-.bg-slide.next {
-  opacity: 0.3;
-  transform: translateX(100%);
-  z-index: 1;
+/* 黑色底色层 - 确保背景切换时露出的是黑色而非白色 */
+.bg-slider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 0;
 }
 
 /* ?????? */
