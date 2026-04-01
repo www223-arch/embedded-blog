@@ -504,12 +504,14 @@ main {
 .hero .container {
   position: relative;
   z-index: 2;
+  padding-left: 80px;
+  margin-top: -200px;
 }
 
 .mono {
   margin: 0;
   color: var(--text);
-  font-size: clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem);
+  font-size: clamp(1.1rem, 0.8rem + 1vw, 1.6rem);
   font-weight: 400;
   letter-spacing: 0;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
@@ -517,12 +519,28 @@ main {
 
 .mono-strong {
   font-weight: 900;
-  min-height: 2.2em;
   font-size: clamp(1.6rem, 1.2rem + 2vw, 3rem);
   letter-spacing: -0.03em;
+  margin: 0;
+  line-height: 1.2;
 }
 
-/* Engineer - ?????????? */
+.role-line {
+  margin: 0;
+  color: var(--text);
+  font-weight: 900;
+  font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+}
+
+.role-line span {
+  display: inline !important;
+}
+
+/* Engineer - 工程师 */
 .role-engineer {
   font-family: "SF Mono", "Fira Code", "Consolas", monospace;
   font-weight: 900;
@@ -532,10 +550,10 @@ main {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 0 2px rgba(0, 212, 255, 0.8);
-  display: inline-block;
+  display: inline;
 }
 
-/* Photographer - ?????? */
+/* Photographer - 摄影师 */
 .role-photographer {
   font-family: "SF Pro Display", "Helvetica Neue", "Arial", sans-serif;
   font-weight: 900;
@@ -543,9 +561,10 @@ main {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  display: inline;
 }
 
-/* Dreamer - ?????? */
+/* Dreamer - 梦想家 */
 .role-dreamer {
   font-family: "Georgia", "Times New Roman", serif;
   font-weight: 900;
@@ -555,13 +574,19 @@ main {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 0 2px rgba(191, 90, 242, 0.8);
-  display: inline-block;
+  display: inline;
+}
+
+#lineRole {
+  display: inline;
 }
 
 .cursor {
   animation: blink 1s steps(1, end) infinite;
   font-weight: 400;
   color: #ffffff;
+  display: inline;
+  vertical-align: baseline;
 }
 
 @keyframes blink {

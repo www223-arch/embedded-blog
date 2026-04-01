@@ -35,7 +35,9 @@ export function renderHome(): string {
         <div class="container">
           <p class="mono" id="lineHello"></p>
           <p class="mono" id="lineIam"></p>
-          <p class="mono mono-strong"><span id="lineRole"></span><span class="cursor">|</span></p>
+          <div class="role-line">
+            <span id="lineRole"></span><span class="cursor">|</span>
+          </div>
         </div>
       </section>
       <section class="section nav-stage" id="navStage">

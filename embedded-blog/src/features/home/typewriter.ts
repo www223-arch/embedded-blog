@@ -29,7 +29,7 @@ export async function runTypewriter(): Promise<void> {
   const iam = document.getElementById("lineIam");
   const role = document.getElementById("lineRole");
   if (!hello || !iam || !role) return;
-  await type(hello, "Hello world,", 70);
+  await type(hello, "Hello world!", 70);
   await wait(180);
   await type(iam, ` ${profile.name}, I can be`, 55);
   await wait(200);
