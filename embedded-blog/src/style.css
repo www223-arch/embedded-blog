@@ -124,7 +124,7 @@ main {
 /* 火箭容器 */
 .rocket-container {
   position: absolute;
-  bottom: 60px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
@@ -309,7 +309,8 @@ main {
   width: 40px;
   height: 50px;
   z-index: -1;
-  opacity: 0.9;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 /* 火焰核心 */
@@ -319,11 +320,12 @@ main {
   left: 50%;
   transform: translateX(-50%);
   width: 8px;
-  height: 25px;
+  height: 0;
   background: linear-gradient(to top, #ffffff 0%, #fff3e0 30%, #ff9800 70%, transparent 100%);
   border-radius: 4px;
   filter: blur(1px);
   animation: flameCore 0.15s ease-in-out infinite alternate;
+  transition: height 0.3s ease;
 }
 
 /* 火焰内层 */
@@ -333,12 +335,13 @@ main {
   left: 50%;
   transform: translateX(-50%);
   width: 16px;
-  height: 35px;
+  height: 0;
   background: linear-gradient(to top, #ff9800 0%, #ff5722 40%, #ff7043 70%, transparent 100%);
   border-radius: 8px;
   filter: blur(2px);
-  opacity: 0.8;
+  opacity: 0;
   animation: flameInner 0.2s ease-in-out infinite alternate;
+  transition: height 0.3s ease, opacity 0.3s ease;
 }
 
 /* 火焰外层 */
@@ -348,12 +351,13 @@ main {
   left: 50%;
   transform: translateX(-50%);
   width: 28px;
-  height: 42px;
+  height: 0;
   background: linear-gradient(to top, #ff7043 0%, #ff5722 30%, rgba(255, 87, 34, 0.3) 80%, transparent 100%);
   border-radius: 14px;
   filter: blur(4px);
-  opacity: 0.6;
+  opacity: 0;
   animation: flameOuter 0.25s ease-in-out infinite alternate;
+  transition: height 0.3s ease, opacity 0.3s ease;
 }
 
 /* 火焰粒子 */
@@ -363,11 +367,13 @@ main {
   left: 50%;
   transform: translateX(-50%);
   width: 36px;
-  height: 35px;
+  height: 0;
   background: radial-gradient(ellipse at center bottom, rgba(255, 152, 0, 0.4) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(6px);
+  opacity: 0;
   animation: particles 0.3s ease-in-out infinite alternate;
+  transition: height 0.3s ease, opacity 0.3s ease;
 }
 
 /* 基础火焰动画 */
@@ -400,27 +406,34 @@ main {
   transform: translateX(-50%) translateY(0);
 }
 
+.rocket-container.phase-jet .rocket-exhaust {
+  opacity: 1;
+}
+
 .rocket-container.phase-jet .exhaust-core {
   animation: flameCoreIntense 0.08s ease-in-out infinite alternate;
-  height: 40px;
+  height: 25px;
 }
 
 .rocket-container.phase-jet .exhaust-inner {
   animation: flameInnerIntense 0.1s ease-in-out infinite alternate;
-  height: 55px;
-  width: 22px;
+  height: 35px;
+  width: 16px;
+  opacity: 0.8;
 }
 
 .rocket-container.phase-jet .exhaust-outer {
   animation: flameOuterIntense 0.12s ease-in-out infinite alternate;
-  height: 70px;
-  width: 36px;
+  height: 42px;
+  width: 28px;
+  opacity: 0.6;
 }
 
 .rocket-container.phase-jet .exhaust-particles {
   animation: particlesIntense 0.15s ease-in-out infinite alternate;
-  height: 50px;
-  width: 48px;
+  height: 35px;
+  width: 36px;
+  opacity: 0.5;
 }
 
 .rocket-container.phase-jet .rocket {
@@ -430,6 +443,36 @@ main {
 /* 阶段2: 升空 - 根据滚动距离控制 */
 .rocket-container.phase-launch {
   transition: transform 0.1s linear;
+}
+
+.rocket-container.phase-launch .rocket-exhaust {
+  opacity: 1;
+}
+
+.rocket-container.phase-launch .exhaust-core {
+  animation: flameCoreIntense 0.08s ease-in-out infinite alternate;
+  height: 40px;
+}
+
+.rocket-container.phase-launch .exhaust-inner {
+  animation: flameInnerIntense 0.1s ease-in-out infinite alternate;
+  height: 55px;
+  width: 22px;
+  opacity: 0.85;
+}
+
+.rocket-container.phase-launch .exhaust-outer {
+  animation: flameOuterIntense 0.12s ease-in-out infinite alternate;
+  height: 70px;
+  width: 36px;
+  opacity: 0.65;
+}
+
+.rocket-container.phase-launch .exhaust-particles {
+  animation: particlesIntense 0.15s ease-in-out infinite alternate;
+  height: 50px;
+  width: 48px;
+  opacity: 0.7;
 }
 
 /* 强化火焰动画 */
@@ -592,6 +635,59 @@ main {
 @keyframes blink {
   50% {
     opacity: 0;
+  }
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.scroll-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.scroll-arrow {
+  width: 36px;
+  height: 36px;
+  color: rgba(255, 255, 255, 0.9);
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+.scroll-arrow svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
