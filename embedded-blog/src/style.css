@@ -12,10 +12,10 @@
   flex-wrap: wrap;
   padding: 4px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(20, 20, 30, 0.2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   position: relative;
   width: 100%;
   flex: 1;
@@ -24,7 +24,7 @@
 #nav button {
   border: none;
   background: transparent;
-  color: var(--muted);
+  color: #ffffff;
   border-radius: 999px;
   padding: 8px 16px;
   cursor: pointer;
@@ -56,18 +56,19 @@
 
 
 #nav button:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .nav-icon {
   font-size: 0.78rem;
-  opacity: 0.9;
+  opacity: 1;
+  color: #ffffff;
 }
 
 #nav button.active {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 #nav button.active .nav-icon {
@@ -579,7 +580,15 @@ main {
 
 .page-intro {
   margin: 8px 0 0;
-  color: var(--muted);
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.6;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.page-intro:hover {
+  transform: translateY(-2px);
 }
 
 .card {
@@ -597,11 +606,15 @@ main {
   position: absolute;
   top: 0;
   left: -100%;
-  width: 100%;
+  width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08), transparent);
+  transition: left 0.4s ease-out;
   z-index: 1;
+}
+
+.card:hover::before {
+  left: 150%;
 }
 
 .card:hover {
@@ -610,10 +623,6 @@ main {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.card:hover::before {
-  left: 100%;
 }
 
 .card h3,
@@ -716,32 +725,48 @@ main {
 
 .filter {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
   margin: 14px 0 18px;
   position: sticky;
   top: 90px;
   z-index: 20;
-  background: transparent;
-  padding: 0;
-  border: none;
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   opacity: 1;
 }
 
 .filter button {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: transparent;
-  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 8px 16px;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 500;
+  will-change: transform;
+}
+
+.filter button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .filter button.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .board-form {
@@ -1171,25 +1196,25 @@ main {
   position: absolute;
   top: 0;
   left: -100%;
-  width: 100%;
+  width: 50%;
   height: 100%;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.08),
     rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.08),
     transparent
   );
   pointer-events: none;
   z-index: 2;
-  transition: left 0.6s ease;
+  transition: left 0.4s ease-out;
 }
 
 .project-card:hover::before,
 .doc-card:hover::before,
 .life-card:hover::before {
-  left: 100%;
+  left: 150%;
 }
 
 .project-card:hover,
@@ -1300,6 +1325,15 @@ main {
   background: transparent;
   border: none;
   box-shadow: none;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+/* 页头固定时，背景导航按钮渐隐 */
+.life-header.fixed ~ .bg-navigation,
+body:has(.life-header.fixed) .bg-navigation {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .bg-nav-btn {
@@ -1465,11 +1499,27 @@ main {
 /* ?????????? */
 .site-header {
   display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 16px 20px;
+  background: transparent;
+  border-bottom: none;
 }
 
 /* ???????? */
 body:has(#view.home) .site-header {
   display: none;
+}
+
+/* ???????????????? */
+body:has(#view.docs) main,
+body:has(#view.projects) main,
+body:has(#view.life) main,
+body:has(#view.board) main {
+  padding-top: 80px;
 }
 
 /* ???????? */
@@ -1588,7 +1638,8 @@ body:has(#view.home) .site-header {
   position: relative;
   background: transparent !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  margin-bottom: 30px;
 }
 
 .life-card:hover {
@@ -1664,22 +1715,8 @@ body:has(#view.home) .site-header {
   position: relative;
   z-index: 20;
   margin-bottom: 30px;
+  
 }
-
-/* 卡片样式 */
-.life-card {
-  position: relative;
-  background: transparent !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  overflow: visible !important;
-  margin-bottom: 30px;
-}
-
-.life-card:hover {
-  background: rgba(10, 10, 15, 0.6) !important;
-}
-
-
 
 /* 固定页头样式 */
 .life-header.fixed {
@@ -1697,4 +1734,21 @@ body:has(#view.home) .site-header {
   width: min(1100px, calc(100% - 40px));
   margin: 0 auto;
   padding: 0;
+}
+
+/* 页头固定时，page-intro和filter渐隐 */
+.life-header.fixed .page-intro,
+.life-header.fixed .filter {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+/* 页头非固定状态时，page-intro和filter正常显示 */
+.life-header .page-intro,
+.life-header .filter {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }

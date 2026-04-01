@@ -47,11 +47,27 @@ export function renderDocs(): string {
   </div>`;
 }
 
+function bindMagneticButton(btn: HTMLElement): void {
+  btn.addEventListener("pointermove", (event) => {
+    const rect = btn.getBoundingClientRect();
+    const dx = (event.clientX - rect.left - rect.width / 2) / rect.width;
+    const dy = (event.clientY - rect.top - rect.height / 2) / rect.height;
+    btn.style.transform = `translate(${dx * 8}px, ${dy * 6}px) scale(1.05)`;
+  });
+  btn.addEventListener("pointerleave", () => {
+    btn.style.transform = "translate(0, 0) scale(1)";
+  });
+}
+
 export function bindDocFilter(): void {
   const wrap = document.getElementById("docFilter");
   const grid = document.getElementById("docGrid");
   if (!wrap || !grid) return;
+  
+  // 为所有filter按钮添加磁吸效果
   wrap.querySelectorAll("button").forEach((btn) => {
+    bindMagneticButton(btn as HTMLElement);
+    
     btn.addEventListener("click", () => {
       const filter = btn.getAttribute("data-filter") || "all";
       wrap.querySelectorAll("button").forEach((b) => b.classList.remove("active"));

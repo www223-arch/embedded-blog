@@ -47,6 +47,18 @@ export function renderLife(): string {
   `;
 }
 
+function bindMagneticButton(btn: HTMLElement): void {
+  btn.addEventListener("pointermove", (event) => {
+    const rect = btn.getBoundingClientRect();
+    const dx = (event.clientX - rect.left - rect.width / 2) / rect.width;
+    const dy = (event.clientY - rect.top - rect.height / 2) / rect.height;
+    btn.style.transform = `translate(${dx * 8}px, ${dy * 6}px) scale(1.05)`;
+  });
+  btn.addEventListener("pointerleave", () => {
+    btn.style.transform = "translate(0, 0) scale(1)";
+  });
+}
+
 export function bindLifeFilter(): void {
   const filter = document.getElementById("lifeFilter");
   const grid = document.querySelector<HTMLElement>(".life-grid");
@@ -54,7 +66,11 @@ export function bindLifeFilter(): void {
   const lifeCards = document.querySelectorAll<HTMLElement>(".life-card");
   
   if (!filter || !grid) return;
+  
+  // 为所有filter按钮添加磁吸效果
   filter.querySelectorAll("button").forEach((button) => {
+    bindMagneticButton(button as HTMLElement);
+    
     button.addEventListener("click", () => {
       const tag = button.getAttribute("data-life-filter") || "all";
       filter.querySelectorAll("button").forEach((node) => node.classList.remove("active"));
@@ -154,10 +170,16 @@ export function bindLifeFilter(): void {
   // 滚动定格效果逻辑
   // ============================================
   const lifeHeader = document.querySelector<HTMLElement>('.life-header');
+  const bgNavigation = document.querySelector<HTMLElement>('.bg-navigation');
+  const pageIntro = document.querySelector<HTMLElement>('.page-intro');
+  const lifeFilter = document.querySelector<HTMLElement>('#lifeFilter');
   
   if (siteHeader && lifeHeader) {
-    // 首先显示页头（因为首页可能隐藏了它）
-    siteHeader.style.display = 'block';
+    // 只在life页面显示页头
+    const currentView = document.getElementById('view');
+    if (currentView && currentView.classList.contains('life')) {
+      siteHeader.style.display = 'block';
+    }
     
     let isFixed = false;
     let initialOffsetTop = 0;
@@ -186,6 +208,39 @@ export function bindLifeFilter(): void {
     // 初始计算
     calculateInitialPositions();
     
+    // 计算背景导航按钮透明度
+    function updateBgNavigationOpacity() {
+      if (!bgNavigation || !pageIntro || !lifeFilter) return;
+      
+      const introRect = pageIntro.getBoundingClientRect();
+      const filterRect = lifeFilter.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // 获取两个元素中较高的那个的顶部位置
+      const higherTop = Math.min(introRect.top, filterRect.top);
+      
+      // 定义渐隐范围：从窗口底部往上到 60vh 位置
+      const fadeStart = windowHeight; // 开始渐隐的位置（窗口底部）
+      const fadeEnd = windowHeight * 0.4; // 完全透明的位置（40vh）
+      
+      let opacity = 1;
+      
+      if (higherTop < fadeStart) {
+        // 元素进入渐隐范围
+        if (higherTop <= fadeEnd) {
+          // 已经完全进入，透明度为0
+          opacity = 0;
+        } else {
+          // 在渐隐过程中，计算透明度
+          opacity = (higherTop - fadeEnd) / (fadeStart - fadeEnd);
+          opacity = Math.max(0, Math.min(1, opacity));
+        }
+      }
+      
+      bgNavigation.style.opacity = String(opacity);
+      bgNavigation.style.pointerEvents = opacity < 0.1 ? 'none' : 'auto';
+    }
+    
     function updateScroll() {
       const scrollY = window.scrollY;
       
@@ -213,6 +268,9 @@ export function bindLifeFilter(): void {
         placeholder.style.height = '0';
         isFixed = false;
       }
+      
+      // 更新背景导航按钮透明度
+      updateBgNavigationOpacity();
     }
     
     // 初始更新

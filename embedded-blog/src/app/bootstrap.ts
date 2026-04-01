@@ -77,6 +77,12 @@ function renderRoute(route: RouteKey): void {
   if (header) {
     header.classList.toggle("liquid-nav", route !== "home" && route !== "playground");
     header.classList.toggle("header-hidden", route === "playground");
+    // 强制控制首页导航栏显示/隐藏
+    if (route === "home") {
+      header.style.display = "none";
+    } else {
+      header.style.display = "block";
+    }
   }
   document.title = `Embedded Blog | ${current.title}`;
   view.innerHTML = current.render();
@@ -86,6 +92,16 @@ function renderRoute(route: RouteKey): void {
   document.querySelectorAll("#nav button").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-route") === route);
   });
+  
+  // 确保首页导航栏正确隐藏
+  if (route === "home") {
+    const header = document.querySelector<HTMLElement>(".site-header");
+    if (header) {
+      header.style.display = "none";
+      header.classList.remove("header-fixed");
+    }
+  }
+  
   const cornerLabel = document.getElementById("paperCornerLabel");
   if (cornerLabel) cornerLabel.textContent = route === "playground" ? "Back" : "Play";
   updateNavIndicator();
