@@ -31,7 +31,7 @@ export async function runTypewriter(): Promise<void> {
   if (!hello || !iam || !role) return;
   await type(hello, "Hello world,", 70);
   await wait(180);
-  await type(iam, `I am ${profile.name}, I want to become`, 55);
+  await type(iam, ` ${profile.name}, I can be`, 55);
   await wait(200);
   while (document.getElementById("lineRole")) {
     for (const item of profile.identities) {

@@ -16,14 +16,16 @@ export function renderDocs(): string {
     )
     .join("");
   return `
-  <section class="container section">
-    <h2 class="reveal">æŠ€æœ¯æ–‡æ¡£</h2>
+  <div class="page-wrapper docs-page">
+    <section class="container section">
+      <h2 class="reveal">¼¼ÊõÎÄµµ</h2>
     <div class="filter reveal" id="docFilter">
-      <button class="active" data-filter="all">å…¨éƒ¨</button>
+      <button class="active" data-filter="all">È«²¿</button>
       ${categories.map((c) => `<button data-filter="${c}">${c}</button>`).join("")}
     </div>
-    <div class="grid-two" id="docGrid">${cards}</div>
-  </section>`;
+      <div class="grid-two" id="docGrid">${cards}</div>
+    </section>
+  </div>`;
 }
 
 export function bindDocFilter(): void {

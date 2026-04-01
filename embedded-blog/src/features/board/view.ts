@@ -4,16 +4,18 @@ const repo = new LocalMessageRepository();
 
 export function renderBoard(): string {
   return `
-  <section class="container section">
-    <h2 class="reveal">ç•™è¨€æ¿</h2>
-    <p class="reveal page-intro">æ¬¢è¿ç•™ä¸‹ä½ çš„æƒ³æ³•ã€å»ºè®®æˆ–ä¸€å¥é—®å€™ã€‚</p>
+  <div class="page-wrapper board-page">
+    <section class="container section">
+      <h2 class="reveal">ÁôÑÔ°å</h2>
+    <p class="reveal page-intro">»¶Ó­ÁôÏÂÄãµÄÏë·¨¡¢½¨Òé»òÒ»¾äÎÊºò¡£</p>
     <form id="boardForm" class="card reveal board-form">
-      <input id="boardName" maxlength="20" placeholder="ä½ çš„æ˜µç§°" required />
-      <textarea id="boardContent" maxlength="160" placeholder="è¯´ç‚¹ä»€ä¹ˆ..." required></textarea>
-      <button type="submit">å‘å¸ƒç•™è¨€</button>
+      <input id="boardName" maxlength="20" placeholder="ÄãµÄêÇ³Æ" required />
+      <textarea id="boardContent" maxlength="160" placeholder="ËµµãÊ²Ã´..." required></textarea>
+      <button type="submit">·¢²¼ÁôÑÔ</button>
     </form>
-    <div id="boardList" class="board-list reveal"></div>
-  </section>
+      <div id="boardList" class="board-list reveal"></div>
+    </section>
+  </div>
   `;
 }
 
@@ -31,13 +33,13 @@ export function mountBoard(): void {
           .map(
             (item) => `
           <article class="card board-item">
-            <div class="board-meta">${escapeHtml(item.name)} Â· ${new Date(item.createdAt).toLocaleString()}</div>
+            <div class="board-meta">${escapeHtml(item.name)} ¡¤ ${new Date(item.createdAt).toLocaleString()}</div>
             <p>${escapeHtml(item.content)}</p>
           </article>
         `
           )
           .join("")
-      : `<article class="card board-item"><p>è¿˜æ²¡æœ‰ç•™è¨€ï¼Œæ¥ç•™ä¸‹ç¬¬ä¸€æ¡å§ã€‚</p></article>`;
+      : `<article class="card board-item"><p>»¹Ã»ÓĞÁôÑÔ£¬À´ÁôÏÂµÚÒ»Ìõ°É¡£</p></article>`;
   };
 
   form.addEventListener("submit", (event) => {

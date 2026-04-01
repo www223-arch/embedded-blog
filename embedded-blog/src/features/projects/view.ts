@@ -2,9 +2,10 @@ import { projectItems } from "../../content/projects";
 
 export function renderProjects(): string {
   return `
-  <section class="container section">
-    <h2 class="reveal">项目作品</h2>
-    <div class="grid-two">
+  <div class="page-wrapper projects-page">
+    <section class="container section">
+      <h2 class="reveal">项目作品</h2>
+      <div class="grid-two">
       ${projectItems
         .map(
           (item) => `
@@ -18,7 +19,8 @@ export function renderProjects(): string {
       `
         )
         .join("")}
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
   `;
 }

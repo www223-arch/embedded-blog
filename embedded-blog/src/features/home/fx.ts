@@ -39,11 +39,11 @@ export function mountHomeParticles(): void {
         const dy = (p1.y - p2.y) * h;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance < 120) {
-          const alpha = (1 - distance / 120) * 0.12;
+        if (distance < 150) {
+          const alpha = (1 - distance / 150) * 0.3;
           ctx.beginPath();
           ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.lineWidth = 0.5;
+          ctx.lineWidth = 1.2;
           ctx.moveTo(p1.x * w, p1.y * h);
           ctx.lineTo(p2.x * w, p2.y * h);
           ctx.stroke();

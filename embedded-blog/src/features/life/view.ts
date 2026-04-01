@@ -4,11 +4,17 @@ import { animateSwapOutIn } from "../../shared/motion";
 export function renderLife(): string {
   const tags = [...new Set(lifePosts.map((post) => post.tag))];
   return `
-  <section class="container section">
-    <h2 class="reveal">ä¸ªäººåˆ†äº«</h2>
-    <p class="reveal page-intro">è¿™é‡Œè®°å½•ç”Ÿæ´»ã€æ‘„å½±ã€é˜…è¯»å’Œæ—¥å¸¸çš„å°çµæ„Ÿã€‚</p>
+  <div class="page-wrapper life-page bg-1">
+    <div class="bg-controls">
+      <button class="bg-btn active" data-bg="1"></button>
+      <button class="bg-btn" data-bg="2"></button>
+      <button class="bg-btn" data-bg="3"></button>
+    </div>
+    <section class="container section">
+      <h2 class="reveal">¸öÈË·ÖÏí</h2>
+    <p class="reveal page-intro">ÕâÀï¼ÇÂ¼Éú»î¡¢ÉãÓ°¡¢ÔÄ¶ÁºÍÈÕ³£µÄĞ¡Áé¸Ğ¡£</p>
     <div class="filter reveal" id="lifeFilter">
-      <button class="active" data-life-filter="all">å…¨éƒ¨</button>
+      <button class="active" data-life-filter="all">È«²¿</button>
       ${tags.map((tag) => `<button data-life-filter="${tag}">${tag}</button>`).join("")}
     </div>
     <div class="grid-two life-grid">
@@ -17,15 +23,16 @@ export function renderLife(): string {
           (post) => `
           <article class="card life-card" data-tag="${post.tag}">
             <img src="${post.cover}" alt="${post.title}" loading="lazy" />
-            <div class="life-meta">${post.date} Â· ${post.tag}</div>
+            <div class="life-meta">${post.date} ¡¤ ${post.tag}</div>
             <h3>${post.title}</h3>
             <p>${post.summary}</p>
           </article>
         `
         )
         .join("")}
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
   `;
 }
 
@@ -46,4 +53,45 @@ export function bindLifeFilter(): void {
       });
     });
   });
+  
+  // ±³¾°ÇĞ»»¹¦ÄÜ
+  const pageWrapper = document.querySelector<HTMLElement>(".life-page");
+  const bgBtns = document.querySelectorAll<HTMLElement>(".bg-btn");
+  if (pageWrapper && bgBtns.length > 0) {
+    let currentBg = 1;
+    const totalBg = 3;
+    
+    function switchBg(bgIndex: number) {
+      // ÒÆ³ıËùÓĞ±³¾°Àà
+      pageWrapper.classList.remove("bg-1", "bg-2", "bg-3");
+      // Ìí¼Óµ±Ç°±³¾°Àà
+      pageWrapper.classList.add(`bg-${bgIndex}`);
+      // ¸üĞÂ°´Å¥×´Ì¬
+      bgBtns.forEach((b, index) => {
+        if (index + 1 === bgIndex) {
+          b.classList.add("active");
+        } else {
+          b.classList.remove("active");
+        }
+      });
+      currentBg = bgIndex;
+    }
+    
+    // ÊÖ¶¯ÇĞ»»
+    bgBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const bg = parseInt(btn.getAttribute("data-bg") || "1");
+        switchBg(bg);
+      });
+    });
+    
+    // ×Ô¶¯ÂÖ²¥
+    setInterval(() => {
+      let nextBg = currentBg + 1;
+      if (nextBg > totalBg) {
+        nextBg = 1;
+      }
+      switchBg(nextBg);
+    }, 8000); // Ã¿8ÃëÇĞ»»Ò»´Î
+  }
 }
