@@ -5,11 +5,34 @@ import yaml
 from pathlib import Path
 
 
-def load_yaml_files(directory: Path):
+def load_folder_content(directory: Path):
     items = []
     if not directory.exists():
         return items
     
+    # First try loading from folders (new structure)
+    for item_dir in sorted(directory.iterdir()):
+        if item_dir.is_dir():
+            try:
+                # Load metadata
+                metadata_file = item_dir / "metadata.json"
+                content_file = item_dir / "content.md"
+                
+                if metadata_file.exists():
+                    import json
+                    with open(metadata_file, "r", encoding="utf-8") as f:
+                        metadata = json.load(f)
+                    
+                    # Load content if exists
+                    if content_file.exists():
+                        with open(content_file, "r", encoding="utf-8") as f:
+                            metadata["markdown"] = f.read()
+                    
+                    items.append(metadata)
+            except Exception as e:
+                print(f"Warning: Cannot load {item_dir}: {e}")
+    
+    # Fallback to loading from YAML files (old structure)
     for yaml_file in sorted(directory.glob("*.yaml")) + sorted(directory.glob("*.yml")):
         try:
             with open(yaml_file, "r", encoding="utf-8") as f:
@@ -17,6 +40,7 @@ def load_yaml_files(directory: Path):
                 items.append(data)
         except Exception as e:
             print(f"Warning: Cannot load {yaml_file}: {e}")
+    
     return items
 
 
@@ -82,7 +106,10 @@ def generate_docs_ts(docs, output_path: Path):
         lines.append(f'    tags: [{", ".join(escape_string(t) for t in tags)}],')
         
         lines.append(f'    level: {escape_string(d.get("level", "beginner"))},')
+        lines.append(f'    createdAt: {escape_string(d.get("createdAt", d.get("updatedAt", "")))},')
         lines.append(f'    updatedAt: {escape_string(d.get("updatedAt", ""))},')
+        lines.append(f'    readingTime: {escape_string(d.get("readingTime", ""))},')
+        lines.append(f'    views: {d.get("views", 0)},')
         lines.append(f'    summary: {escape_string(d.get("summary", ""))},')
         lines.append(f'    markdown: {escape_string(d.get("markdown", ""))}')
         lines.append('  },')
@@ -127,7 +154,7 @@ def generate_life_posts_ts(life_posts, output_path: Path):
 
 
 def main():
-    base_dir = Path(__file__).parent
+    base_dir = Path(__file__).parent.parent
     content_dir = base_dir / "content"
     src_content_dir = base_dir / "src" / "content"
     
@@ -136,13 +163,13 @@ def main():
     print("=" * 60)
     print()
     
-    projects = load_yaml_files(content_dir / "projects")
+    projects = load_folder_content(content_dir / "projects")
     print(f"Found {len(projects)} projects")
     
-    docs = load_yaml_files(content_dir / "docs")
+    docs = load_folder_content(content_dir / "docs")
     print(f"Found {len(docs)} docs")
     
-    life_posts = load_yaml_files(content_dir / "life")
+    life_posts = load_folder_content(content_dir / "life")
     print(f"Found {len(life_posts)} life posts")
     print()
     

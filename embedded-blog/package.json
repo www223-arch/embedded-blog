@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "add-card": "node scripts/add-card.js",
+    "generate-content": "python scripts/generate_content.py"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

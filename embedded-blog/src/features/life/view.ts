@@ -25,7 +25,7 @@ export function renderLife(): string {
       ${lifePosts
         .map(
           (post) => `
-          <article class="card life-card" data-tag="${post.tag}">
+          <article class="card life-card" data-tag="${post.tag}" data-id="${post.id}">
             <img src="${post.cover}" alt="${post.title}" loading="lazy" />
             <div class="life-meta">${post.date} · ${post.tag}</div>
             <h3>${post.title}</h3>
@@ -36,6 +36,12 @@ export function renderLife(): string {
         .join("")}
       </div>
     </section>
+    <div id="lifeModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div id="lifeModalContent"></div>
+      </div>
+    </div>
   </div>
   `;
 }
@@ -57,6 +63,30 @@ export function bindLifeFilter(): void {
       });
     });
   });
+  
+  // 绑定卡片点击事件
+  document.querySelectorAll(".life-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const postId = card.getAttribute("data-id");
+      if (postId) {
+        showLifeDetails(postId);
+      }
+    });
+  });
+  
+  // 绑定模态框关闭事件
+  const modal = document.getElementById("lifeModal");
+  const closeBtn = document.querySelector(".modal-close");
+  if (modal && closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  }
   
   // 堆叠式背景切换功能
   const slides = document.querySelectorAll<HTMLElement>(".bg-slide");
@@ -115,4 +145,19 @@ export function bindLifeFilter(): void {
     showSlide(0);
     startAutoSlide();
   }
+}
+
+function showLifeDetails(postId: string): void {
+  const post = lifePosts.find((p) => p.id === postId);
+  const modal = document.getElementById("lifeModal");
+  const content = document.getElementById("lifeModalContent");
+  if (!post || !modal || !content) return;
+  
+  content.innerHTML = `
+    <h3>${post.title}</h3>
+    ${post.cover ? `<img src="${post.cover}" alt="${post.title}" style="width: 100%; border-radius: 10px; margin: 20px 0;"/>` : ""}
+    <div class="life-meta">${post.date} · ${post.tag}</div>
+    <p>${post.summary}</p>
+  `;
+  modal.style.display = "block";
 }

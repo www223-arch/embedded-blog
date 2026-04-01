@@ -6,7 +6,10 @@ export const docSchema = z.object({
   category: z.string(),
   tags: z.array(z.string()),
   level: z.enum(["beginner", "intermediate", "advanced"]),
+  createdAt: z.string(),
   updatedAt: z.string(),
+  readingTime: z.string(),
+  views: z.number(),
   summary: z.string(),
   markdown: z.string()
 });

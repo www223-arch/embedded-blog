@@ -6,10 +6,24 @@ export function renderDocs(): string {
   const cards = techDocs
     .map(
       (doc) => `
-      <article class="card doc-card" data-category="${doc.category}">
+      <article class="card doc-card" data-category="${doc.category}" data-id="${doc.id}">
         <div class="pill">${doc.level}</div>
         <h3>${doc.title}</h3>
         <p>${doc.summary}</p>
+        <div class="doc-meta">
+          <div class="meta-item">
+            <span class="meta-icon">?</span>
+            <span>${doc.updatedAt}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">??</span>
+            <span>${doc.readingTime}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">??</span>
+            <span>${doc.views} views</span>
+          </div>
+        </div>
         <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
       </article>
     `
@@ -18,13 +32,19 @@ export function renderDocs(): string {
   return `
   <div class="page-wrapper docs-page">
     <section class="container section">
-      <h2 class="reveal">¼¼ÊõÎÄµµ</h2>
+      <h2 class="reveal">æŠ€æœ¯æ–‡æ¡£</h2>
     <div class="filter reveal" id="docFilter">
-      <button class="active" data-filter="all">È«²¿</button>
+      <button class="active" data-filter="all">å…¨éƒ¨</button>
       ${categories.map((c) => `<button data-filter="${c}">${c}</button>`).join("")}
     </div>
       <div class="grid-two" id="docGrid">${cards}</div>
     </section>
+    <div id="docModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div id="docModalContent"></div>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -45,4 +65,53 @@ export function bindDocFilter(): void {
       });
     });
   });
+  
+  // ??????????
+  document.querySelectorAll(".doc-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const docId = card.getAttribute("data-id");
+      if (docId) {
+        showDocDetails(docId);
+      }
+    });
+  });
+  
+  // ???????????
+  const modal = document.getElementById("docModal");
+  const closeBtn = document.querySelector(".modal-close");
+  if (modal && closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  }
+}
+
+function showDocDetails(docId: string): void {
+  const doc = techDocs.find((d) => d.id === docId);
+  const modal = document.getElementById("docModal");
+  const content = document.getElementById("docModalContent");
+  if (!doc || !modal || !content) return;
+  
+  content.innerHTML = `
+    <h3>${doc.title}</h3>
+    <div class="pill">${doc.level}</div>
+    <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+    <p class="doc-date">Updated: ${doc.updatedAt}</p>
+    <div class="doc-content">${markdownToHtml(doc.markdown)}</div>
+  `;
+  modal.style.display = "block";
+}
+
+function markdownToHtml(markdown: string): string {
+  return markdown
+    .replace(/^## (.*$)/gm, '<h4>$1</h4>')
+    .replace(/^### (.*$)/gm, '<h5>$1</h5>')
+    .replace(/\n\* (.*$)/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n\n/g, '<br><br>');
 }

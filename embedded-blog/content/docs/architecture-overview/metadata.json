@@ -1,0 +1,12 @@
+{
+  "id": "architecture-overview",
+  "title": "Architecture Overview",
+  "category": "System Design",
+  "tags": ["Architecture", "System Design", "Frontend"],
+  "level": "beginner",
+  "createdAt": "2026-04-01",
+  "updatedAt": "2026-04-01",
+  "summary": "Overview of the embedded blog architecture and extension mechanism.",
+  "readingTime": "10 min",
+  "views": 0
+}

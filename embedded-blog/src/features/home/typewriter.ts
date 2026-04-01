@@ -20,7 +20,7 @@ async function erase(target: HTMLElement, speed: number): Promise<void> {
 // Identity styles mapping
 const identityStyles: Record<string, string> = {
   "Engineer": "role-engineer",
-  "Photographer": "role-photographer", 
+  "Photog": "role-photographer", 
   "Dreamer": "role-dreamer"
 };
 
@@ -38,7 +38,7 @@ export async function runTypewriter(): Promise<void> {
       // Apply style class for this identity
       role.className = identityStyles[item] || "";
       await type(role, item, 70);
-      await wait(700);
+      await wait(2000);
       await erase(role, 40);
       await wait(130);
     }
