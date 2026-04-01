@@ -8,6 +8,30 @@ export function renderHome(): string {
       <section class="hero reveal">
         <div class="hero-mask"></div>
         <canvas id="heroParticles" class="hero-particles" aria-hidden="true"></canvas>
+        <div class="rocket-container">
+          <div class="rocket">
+            <div class="rocket-nose"></div>
+            <div class="rocket-body">
+              <div class="rocket-window"></div>
+              <div class="rocket-stripe"></div>
+            </div>
+            <div class="rocket-fins">
+              <div class="rocket-fin fin-left"></div>
+              <div class="rocket-fin fin-right"></div>
+              <div class="rocket-fin fin-center"></div>
+            </div>
+            <div class="rocket-engine">
+              <div class="engine-nozzle"></div>
+            </div>
+            <div class="rocket-exhaust">
+              <div class="exhaust-core"></div>
+              <div class="exhaust-inner"></div>
+              <div class="exhaust-outer"></div>
+              <div class="exhaust-particles"></div>
+            </div>
+
+          </div>
+        </div>
         <div class="container">
           <p class="mono" id="lineHello"></p>
           <p class="mono" id="lineIam"></p>
