@@ -1256,7 +1256,8 @@ main {
 /* ?????? - ??????? */
 .life-page {
   position: relative;
-  min-height: 100vh;
+  min-height: 400vh;
+  padding-bottom: 300vh;
 }
 
 /* ?????? */
@@ -1361,18 +1362,17 @@ body:has(.life-header.fixed) .bg-navigation {
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
-/* ???????? */
+/* 内容容器 */
 .life-content {
-  margin-top: 50vh;
-  padding-bottom: 100px;
+  padding-bottom: 1000px;
   position: relative;
   z-index: 11;
 }
 
-/* ????? */
+/* 移动端 */
 @media (max-width: 768px) {
   .life-content {
-    margin-top: 30vh;
+    padding-bottom: 1000px;
   }
   
   .bg-nav-btn {
@@ -1577,7 +1577,8 @@ body:has(#view.board) main {
 /* 个人分享页面整体容器 */
 .life-page {
   position: relative;
-  min-height: 100vh;
+  min-height: 400vh;
+  padding-bottom: 300vh;
 }
 
 /* 内容容器 - 整体初始在下半段 */
@@ -1699,12 +1700,13 @@ body:has(#view.board) main {
 /* 个人分享页面 */
 .life-page {
   position: relative;
-  min-height: 100vh;
+  min-height: 400vh;
+  padding-bottom: 300vh;
 }
 
 /* 内容区域 */
 .life-content {
-  margin-top: 75vh;
+  margin-top: 45vh;
   padding-bottom: 100px;
   position: relative;
   z-index: 11;

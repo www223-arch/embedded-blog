@@ -14,6 +14,8 @@ export function renderLife(): string {
       <button class="bg-nav-btn prev" id="prevBg">&lt;</button>
       <button class="bg-nav-btn next" id="nextBg">&gt;</button>
     </div>
+    <!-- 顶部空间 - 让物体可以向下移动，完全移出画面上方 -->
+    <div style="height: 200px;"></div>
     <section class="container section life-content">
       <div class="life-header">
         <p class="reveal page-intro">这里记录生活、摄影、阅读和日常的小灵感。</p>
@@ -37,6 +39,8 @@ export function renderLife(): string {
           .join("")}
         </div>
     </section>
+    <!-- 底部占位符 - 确保可以向下滚动到更低 -->
+    <div style="height: 0px;"></div>
     <div id="lifeModal" class="modal" style="display: none;">
       <div class="modal-content">
         <span class="modal-close">&times;</span>

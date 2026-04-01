@@ -88,6 +88,18 @@ function renderRoute(route: RouteKey): void {
   view.innerHTML = current.render();
   animateViewEnter(view);
   bindHoverLift(".card");
+  
+  // 设置滚动位置
+  if (route === 'life') {
+    // 个人分享页面的初始滚动位置 - 滚动到内容区域
+    setTimeout(() => {
+      window.scrollTo(0, 1500*0.15);
+    }, 0);
+  } else {
+    // 其他页面重置到顶部
+    window.scrollTo(0, 0);
+  }
+  
   current.afterMount?.();
   document.querySelectorAll("#nav button").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-route") === route);
