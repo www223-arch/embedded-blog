@@ -1,6 +1,7 @@
 import { renderHome } from "../features/home/view";
 import { runTypewriter } from "../features/home/typewriter";
 import { mountHomeParticles } from "../features/home/fx";
+import { mountScrollEffect } from "../features/home/scrollEffect";
 import { renderDocs, bindDocFilter } from "../features/docs/view";
 import { renderProjects } from "../features/projects/view";
 import { renderLife, bindLifeFilter } from "../features/life/view";
@@ -36,7 +37,7 @@ function shellTemplate(): string {
   </header>
   <main id="view"></main>
   <footer class="footer">
-    <div class="container">Â© ${new Date().getFullYear()} WL | Built with Vite + TypeScript</div>
+    <div class="container">? ${new Date().getFullYear()} WL | Built with Vite + TypeScript</div>
   </footer>
   `;
 }
@@ -45,17 +46,17 @@ function bindNav(): void {
   const nav = document.getElementById("nav");
   if (!nav) return;
   const iconMap: Record<string, string> = {
-    home: "âŒ‚",
-    docs: "â—«",
-    projects: "âœ¦",
-    life: "âœ¿",
-    board: "âœ"
+    home: "?",
+    docs: "?",
+    projects: "?",
+    life: "?",
+    board: "?"
   };
   nav.innerHTML = [
-    `<button data-route="home" class="nav-home nav-pill"><span class="nav-icon">${iconMap.home}</span><span>å›åˆ°é¦–é¡µ</span></button>`,
+    `<button data-route="home" class="nav-home nav-pill"><span class="nav-icon">${iconMap.home}</span><span>»Øµ½Ê×Ò³</span></button>`,
     ...getNavModules().map(
       (m) =>
-        `<button data-route="${m.key}" class="nav-pill nav-${m.key}"><span class="nav-icon">${iconMap[m.key] || "â€¢"}</span><span>${m.label}</span></button>`
+        `<button data-route="${m.key}" class="nav-pill nav-${m.key}"><span class="nav-icon">${iconMap[m.key] || "?"}</span><span>${m.label}</span></button>`
     )
   ]
     .join("");
@@ -74,6 +75,10 @@ function renderRoute(route: RouteKey): void {
   if (!view) return;
   const current = getModule(route);
   if (!current) return;
+  
+  // Ìí¼ÓÒ³ÃæÀà
+  view.className = route;
+  
   if (header) {
     header.classList.toggle("liquid-nav", route !== "home" && route !== "playground");
     header.classList.toggle("header-hidden", route === "playground");
@@ -94,8 +99,8 @@ function renderRoute(route: RouteKey): void {
 function registerDefaults(): void {
   register({
     key: "home",
-    label: "é¦–é¡µ",
-    title: "é¦–é¡µ",
+    label: "Ê×Ò³",
+    title: "Ê×Ò³",
     visibleInNav: false,
     render: renderHome,
     afterMount: () => {
@@ -103,16 +108,17 @@ function registerDefaults(): void {
       mountHomeParticles();
       bindStageNav();
       mountPet();
+      mountScrollEffect();
     }
   });
-  register({ key: "docs", label: "æŠ€æœ¯æ–‡æ¡£", title: "æŠ€æœ¯æ–‡æ¡£", render: renderDocs, afterMount: bindDocFilter });
-  register({ key: "projects", label: "é¡¹ç›®ä½œå“", title: "é¡¹ç›®ä½œå“", render: renderProjects });
-  register({ key: "life", label: "ä¸ªäººåˆ†äº«", title: "ä¸ªäººåˆ†äº«", render: renderLife, afterMount: bindLifeFilter });
-  register({ key: "board", label: "ç•™è¨€æ¿", title: "ç•™è¨€æ¿", render: renderBoard, afterMount: mountBoard });
+  register({ key: "docs", label: "¼¼ÊõÎÄµµ", title: "¼¼ÊõÎÄµµ", render: renderDocs, afterMount: bindDocFilter });
+  register({ key: "projects", label: "ÏîÄ¿×÷Æ·", title: "ÏîÄ¿×÷Æ·", render: renderProjects });
+  register({ key: "life", label: "¸öÈË·ÖÏí", title: "¸öÈË·ÖÏí", render: renderLife, afterMount: bindLifeFilter });
+  register({ key: "board", label: "ÁôÑÔ°å", title: "ÁôÑÔ°å", render: renderBoard, afterMount: mountBoard });
   register({
     key: "playground",
-    label: "è¶£å‘³å®éªŒå®¤",
-    title: "è¶£å‘³å®éªŒå®¤",
+    label: "È¤Î¶ÊµÑéÊÒ",
+    title: "È¤Î¶ÊµÑéÊÒ",
     visibleInNav: false,
     render: renderPlayground,
     afterMount: mountGames

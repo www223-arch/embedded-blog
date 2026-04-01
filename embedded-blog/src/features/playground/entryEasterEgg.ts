@@ -79,20 +79,46 @@ function runPageFlip(target: "home" | "playground", onDone: () => void): void {
     return;
   }
   overlay.classList.add("active");
-  gsap.set(sheet, { rotationY: 0, transformOrigin: "100% 100%" });
+  
+  // ? - ?½?
+  gsap.set(sheet, { 
+    transformOrigin: "right bottom",
+    rotateX: 0,
+    rotateY: 0,
+    rotateZ: 0,
+    scale: 1,
+    x: 0,
+    y: 0
+  });
+  
+  // ??????????????????
   gsap.to(sheet, {
-    rotationY: -82,
-    duration: 0.38,
+    rotateX: -15,
+    rotateY: -120,
+    rotateZ: 8,
+    scale: 0.95,
+    x: -50,
+    y: 30,
+    duration: 0.5,
     ease: "power2.in",
     onComplete: () => {
+      // ??????????????????
       navigate(target);
-      gsap.set(sheet, { rotationY: 82, transformOrigin: "0% 100%" });
+      
+      // ???????????????????????
       gsap.to(sheet, {
-        rotationY: 0,
-        duration: 0.42,
+        rotateX: -30,
+        rotateY: -180,
+        rotateZ: 15,
+        scale: 0.9,
+        x: -100,
+        y: 50,
+        opacity: 0,
+        duration: 0.4,
         ease: "power3.out",
         onComplete: () => {
           overlay.classList.remove("active");
+          gsap.set(sheet, { opacity: 1 });
           onDone();
         }
       });

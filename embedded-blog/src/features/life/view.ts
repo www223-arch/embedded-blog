@@ -4,17 +4,21 @@ import { animateSwapOutIn } from "../../shared/motion";
 export function renderLife(): string {
   const tags = [...new Set(lifePosts.map((post) => post.tag))];
   return `
-  <div class="page-wrapper life-page bg-1">
-    <div class="bg-controls">
-      <button class="bg-btn active" data-bg="1"></button>
-      <button class="bg-btn" data-bg="2"></button>
-      <button class="bg-btn" data-bg="3"></button>
+  <div class="page-wrapper life-page">
+    <div class="bg-slider">
+      <div class="bg-slide active" style="background-image: url('/guosai2.jpg')"></div>
+      <div class="bg-slide" style="background-image: url('/xiaoshao.jpg')"></div>
+      <div class="bg-slide" style="background-image: url('/Giobal.jpg')"></div>
     </div>
-    <section class="container section">
-      <h2 class="reveal">¸öÈË·ÖÏí</h2>
-    <p class="reveal page-intro">ÕâÀï¼ÇÂ¼Éú»î¡¢ÉãÓ°¡¢ÔÄ¶ÁºÍÈÕ³£µÄĞ¡Áé¸Ğ¡£</p>
+    <div class="bg-navigation">
+      <button class="bg-nav-btn prev" id="prevBg">&lt;</button>
+      <button class="bg-nav-btn next" id="nextBg">&gt;</button>
+    </div>
+    <section class="container section life-content">
+      <h2 class="reveal">ä¸ªäººåˆ†äº«</h2>
+    <p class="reveal page-intro">è¿™é‡Œè®°å½•ç”Ÿæ´»ã€æ‘„å½±ã€é˜…è¯»å’Œæ—¥å¸¸çš„å°çµæ„Ÿã€‚</p>
     <div class="filter reveal" id="lifeFilter">
-      <button class="active" data-life-filter="all">È«²¿</button>
+      <button class="active" data-life-filter="all">å…¨éƒ¨</button>
       ${tags.map((tag) => `<button data-life-filter="${tag}">${tag}</button>`).join("")}
     </div>
     <div class="grid-two life-grid">
@@ -23,7 +27,7 @@ export function renderLife(): string {
           (post) => `
           <article class="card life-card" data-tag="${post.tag}">
             <img src="${post.cover}" alt="${post.title}" loading="lazy" />
-            <div class="life-meta">${post.date} ¡¤ ${post.tag}</div>
+            <div class="life-meta">${post.date} Â· ${post.tag}</div>
             <h3>${post.title}</h3>
             <p>${post.summary}</p>
           </article>
@@ -54,44 +58,61 @@ export function bindLifeFilter(): void {
     });
   });
   
-  // ±³¾°ÇĞ»»¹¦ÄÜ
-  const pageWrapper = document.querySelector<HTMLElement>(".life-page");
-  const bgBtns = document.querySelectorAll<HTMLElement>(".bg-btn");
-  if (pageWrapper && bgBtns.length > 0) {
-    let currentBg = 1;
-    const totalBg = 3;
+  // å †å å¼èƒŒæ™¯åˆ‡æ¢åŠŸèƒ½
+  const slides = document.querySelectorAll<HTMLElement>(".bg-slide");
+  const prevBtn = document.getElementById("prevBg");
+  const nextBtn = document.getElementById("nextBg");
+  
+  if (slides.length > 0 && prevBtn && nextBtn) {
+    let currentIndex = 0;
+    const totalSlides = slides.length;
+    let autoSlideInterval: NodeJS.Timeout;
     
-    function switchBg(bgIndex: number) {
-      // ÒÆ³ıËùÓĞ±³¾°Àà
-      pageWrapper.classList.remove("bg-1", "bg-2", "bg-3");
-      // Ìí¼Óµ±Ç°±³¾°Àà
-      pageWrapper.classList.add(`bg-${bgIndex}`);
-      // ¸üĞÂ°´Å¥×´Ì¬
-      bgBtns.forEach((b, index) => {
-        if (index + 1 === bgIndex) {
-          b.classList.add("active");
-        } else {
-          b.classList.remove("active");
+    function showSlide(index: number) {
+      // ç¡®ä¿ç´¢å¼•åœ¨æœ‰æ•ˆèŒƒå›´å†…
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      
+      // ç§»é™¤æ‰€æœ‰æ¿€æ´»çŠ¶æ€
+      slides.forEach((slide, i) => {
+        slide.classList.remove("active", "prev", "next");
+        if (i === index) {
+          slide.classList.add("active");
+        } else if (i === (index - 1 + totalSlides) % totalSlides) {
+          slide.classList.add("prev");
+        } else if (i === (index + 1) % totalSlides) {
+          slide.classList.add("next");
         }
       });
-      currentBg = bgIndex;
+      
+      currentIndex = index;
     }
     
-    // ÊÖ¶¯ÇĞ»»
-    bgBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const bg = parseInt(btn.getAttribute("data-bg") || "1");
-        switchBg(bg);
-      });
+    // å¯åŠ¨è‡ªåŠ¨è½®æ’­
+    function startAutoSlide() {
+      // æ¸…é™¤ç°æœ‰çš„å®šæ—¶å™¨
+      if (autoSlideInterval) {
+        clearInterval(autoSlideInterval);
+      }
+      // é‡æ–°è®¾ç½®å®šæ—¶å™¨
+      autoSlideInterval = setInterval(() => {
+        showSlide(currentIndex + 1);
+      }, 8000); // æ¯8ç§’åˆ‡æ¢ä¸€æ¬¡
+    }
+    
+    // æ‰‹åŠ¨åˆ‡æ¢
+    prevBtn.addEventListener("click", () => {
+      showSlide(currentIndex - 1);
+      startAutoSlide(); // é‡ç½®è‡ªåŠ¨åˆ‡æ¢å®šæ—¶å™¨
     });
     
-    // ×Ô¶¯ÂÖ²¥
-    setInterval(() => {
-      let nextBg = currentBg + 1;
-      if (nextBg > totalBg) {
-        nextBg = 1;
-      }
-      switchBg(nextBg);
-    }, 8000); // Ã¿8ÃëÇĞ»»Ò»´Î
+    nextBtn.addEventListener("click", () => {
+      showSlide(currentIndex + 1);
+      startAutoSlide(); // é‡ç½®è‡ªåŠ¨åˆ‡æ¢å®šæ—¶å™¨
+    });
+    
+    // åˆå§‹åŒ–æ˜¾ç¤ºå¹¶å¯åŠ¨è‡ªåŠ¨è½®æ’­
+    showSlide(0);
+    startAutoSlide();
   }
 }
