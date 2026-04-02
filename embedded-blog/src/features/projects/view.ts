@@ -7,8 +7,8 @@ export function renderProjects(): string {
       <div class="grid-two">
       ${projectItems
         .map(
-          (item) => `
-        <article class="card project-card" data-id="${item.id}">
+          (item, index) => `
+        <article class="card project-card ${index % 2 === 0 ? 'project-card-left' : 'project-card-right'}" data-id="${item.id}">
           <img src="${item.gallery[0]}" alt="${item.title}" loading="lazy"/>
           <h3>${item.title}</h3>
           <p>${item.summary}</p>

@@ -16,7 +16,7 @@ const projectsRaw = [
     summary: "High-performance closed-loop motor control system based on STM32 HAL library, supporting online parameter tuning and real-time monitoring.",
     stack: ["STM32 HAL", "C++", "PID", "CAN Bus"],
     highlights: ["Speed/position dual-loop PID control", "UART real-time parameter adjustment", "Over-current/over-temperature protection", "CAN bus multi-machine communication", "Graphical debugging interface"],
-    gallery: ["https://images.unsplash.com/photo-1581092921461-eab10380cb2e?auto=format&fit=crop&w=1200&q=80"],
+    gallery: ["/iss064e041512~orig.jpg"],
     links: [{ label: "Technical Docs", href: "#" }]
   },
 ] as const;

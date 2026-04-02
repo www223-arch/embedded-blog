@@ -15,7 +15,7 @@ export function renderLife(): string {
       <button class="bg-nav-btn next" id="nextBg">&gt;</button>
     </div>
     <!-- 顶部空间 - 让物体可以向下移动，完全移出画面上方 -->
-    <div style="height: 200px;"></div>
+    <div style="height: 250px;"></div>
     <section class="container section life-content">
       <div class="life-header">
         <p class="reveal page-intro">这里记录生活、摄影、阅读和日常的小灵感。</p>
