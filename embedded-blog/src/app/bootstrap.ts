@@ -22,6 +22,10 @@ export function bootstrap(): void {
   if (!app) return;
   app.innerHTML = shellTemplate();
   bindNav();
+  bindNavControls();
+  bindThemeToggle();
+  bindSearch();
+  initTheme();
   renderRoute(getCurrentRoute());
   onRouteChange(renderRoute);
   mountPaperCornerEasterEgg();
@@ -32,6 +36,19 @@ function shellTemplate(): string {
   <header class="site-header">
     <a class="brand" href="#home">Embedded.dev</a>
     <nav id="nav"></nav>
+    <button class="nav-controls-btn" id="navControlsBtn" title="打开控制">
+      <span class="nav-controls-icon">☰</span>
+    </button>
+    <div class="nav-controls-panel" id="navControlsPanel">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索..." />
+        <button class="search-btn" id="searchBtn">🔍</button>
+      </div>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <span class="theme-icon sun">☀️</span>
+        <span class="theme-icon moon">🌙</span>
+      </button>
+    </div>
   </header>
   <main id="view"></main>
   `;
@@ -206,4 +223,221 @@ function bindMagnetic(btn: Element): void {
   node.addEventListener("pointerleave", () => {
     gsap.to(node, { x: 0, y: 0, duration: 0.28, ease: "power2.out" });
   });
+}
+
+// 导航控制按钮功能
+function bindNavControls(): void {
+  const navControlsBtn = document.getElementById("navControlsBtn");
+  const navControlsPanel = document.getElementById("navControlsPanel");
+  
+  if (!navControlsBtn || !navControlsPanel) return;
+
+  // 切换控制面板显示/隐藏
+  navControlsBtn.addEventListener("click", () => {
+    navControlsBtn.classList.toggle("active");
+    navControlsPanel.classList.toggle("active");
+  });
+
+  // 点击面板外部关闭
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest("#navControlsBtn") && !target.closest("#navControlsPanel")) {
+      navControlsBtn.classList.remove("active");
+      navControlsPanel.classList.remove("active");
+    }
+  });
+
+  // 点击搜索结果项时关闭面板
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest(".search-result-item")) {
+      navControlsBtn.classList.remove("active");
+      navControlsPanel.classList.remove("active");
+    }
+  });
+}
+
+// 主题切换功能
+function bindThemeToggle(): void {
+  const themeToggle = document.getElementById("themeToggle");
+  if (!themeToggle) return;
+
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+  });
+}
+
+function setTheme(theme: string): void {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}
+
+function initTheme(): void {
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = savedTheme || (prefersDark ? "dark" : "light");
+  setTheme(theme);
+}
+
+// 搜索功能
+function bindSearch(): void {
+  const searchInput = document.getElementById("searchInput") as HTMLInputElement;
+  const searchBtn = document.getElementById("searchBtn");
+  
+  if (!searchInput) return;
+
+  // 创建搜索结果下拉框
+  const searchResults = document.createElement("div");
+  searchResults.className = "search-results";
+  searchResults.id = "searchResults";
+  
+  const navControlsPanel = document.getElementById("navControlsPanel");
+  if (navControlsPanel) {
+    navControlsPanel.style.position = "relative";
+    navControlsPanel.appendChild(searchResults);
+  }
+
+  // 搜索输入事件
+  let debounceTimer: NodeJS.Timeout;
+  searchInput.addEventListener("input", (e) => {
+    clearTimeout(debounceTimer);
+    const query = (e.target as HTMLInputElement).value.trim();
+    
+    if (query.length === 0) {
+      hideSearchResults();
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      performSearch(query);
+    }, 300);
+  });
+
+  // 搜索按钮点击事件
+  searchBtn?.addEventListener("click", () => {
+    const query = searchInput.value.trim();
+    if (query) {
+      performSearch(query);
+    }
+  });
+
+  // 回车键搜索
+  searchInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      const query = searchInput.value.trim();
+      if (query) {
+        performSearch(query);
+      }
+    }
+  });
+
+  // 点击外部关闭搜索结果
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest(".search-box") && !target.closest(".search-results")) {
+      hideSearchResults();
+    }
+  });
+}
+
+function performSearch(query: string): void {
+  const results: Array<{ title: string; type: string; route: string; id?: string }> = [];
+  const lowerQuery = query.toLowerCase();
+
+  // 搜索技术文档
+  docs.forEach((doc) => {
+    if (doc.title.toLowerCase().includes(lowerQuery) || 
+        doc.summary.toLowerCase().includes(lowerQuery)) {
+      results.push({
+        title: doc.title,
+        type: "技术文档",
+        route: "docs",
+        id: doc.id
+      });
+    }
+  });
+
+  // 搜索项目
+  projects.forEach((project) => {
+    if (project.title.toLowerCase().includes(lowerQuery) || 
+        project.summary.toLowerCase().includes(lowerQuery)) {
+      results.push({
+        title: project.title,
+        type: "项目作品",
+        route: "projects",
+        id: project.id
+      });
+    }
+  });
+
+  // 搜索生活分享
+  lifePosts.forEach((post) => {
+    if (post.title.toLowerCase().includes(lowerQuery) || 
+        post.summary.toLowerCase().includes(lowerQuery) ||
+        post.tag.toLowerCase().includes(lowerQuery)) {
+      results.push({
+        title: post.title,
+        type: "个人分享",
+        route: "life",
+        id: post.id
+      });
+    }
+  });
+
+  displaySearchResults(results, query);
+}
+
+function displaySearchResults(results: Array<{ title: string; type: string; route: string; id?: string }>, query: string): void {
+  const searchResults = document.getElementById("searchResults");
+  if (!searchResults) return;
+
+  if (results.length === 0) {
+    searchResults.innerHTML = `<div class="search-no-results">未找到与 "${query}" 相关的内容</div>`;
+  } else {
+    searchResults.innerHTML = results.map((result) => `
+      <div class="search-result-item" data-route="${result.route}" data-id="${result.id || ""}">
+        <div class="search-result-title">${highlightMatch(result.title, query)}</div>
+        <div class="search-result-type">${result.type}</div>
+      </div>
+    `).join("");
+
+    // 绑定点击事件
+    searchResults.querySelectorAll(".search-result-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const route = item.getAttribute("data-route") as RouteKey;
+        const id = item.getAttribute("data-id");
+        navigate(route);
+        hideSearchResults();
+        
+        // 如果有ID，滚动到对应元素
+        if (id) {
+          setTimeout(() => {
+            const element = document.querySelector(`[data-id="${id}"]`);
+            element?.scrollIntoView({ behavior: "smooth", block: "center" });
+            // 高亮显示
+            element?.classList.add("highlight");
+            setTimeout(() => element?.classList.remove("highlight"), 2000);
+          }, 300);
+        }
+      });
+    });
+  }
+
+  searchResults.classList.add("active");
+}
+
+function hideSearchResults(): void {
+  const searchResults = document.getElementById("searchResults");
+  searchResults?.classList.remove("active");
+}
+
+function highlightMatch(text: string, query: string): string {
+  const regex = new RegExp(`(${escapeRegex(query)})`, "gi");
+  return text.replace(regex, "<mark>$1</mark>");
+}
+
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
