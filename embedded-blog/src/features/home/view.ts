@@ -1,4 +1,4 @@
-import { profile } from "../../content/profile";
+
 
 export function renderHome(): string {
   return `

@@ -3,7 +3,7 @@ import { runTypewriter } from "../features/home/typewriter";
 import { mountHomeParticles } from "../features/home/fx";
 import { mountScrollEffect } from "../features/home/scrollEffect";
 import { renderDocs, bindDocFilter } from "../features/docs/view";
-import { renderProjects, bindProjectClick } from "../features/projects/view";
+import { renderProjects } from "../features/projects/view";
 import { renderLife, bindLifeFilter } from "../features/life/view";
 import { renderBoard, mountBoard } from "../features/board/view";
 import { renderPlayground } from "../features/playground/view";
@@ -15,6 +15,9 @@ import type { RouteKey } from "./types";
 import { getModule, getNavModules, register } from "./moduleRegistry";
 import { mountPaperCornerEasterEgg } from "../features/playground/entryEasterEgg";
 import gsap from "gsap";
+import { techDocs } from "../content/docs";
+import { projectItems } from "../content/projects";
+import { lifePosts } from "../content/lifePosts";
 
 export function bootstrap(): void {
   registerDefaults();
@@ -197,20 +200,7 @@ function updateNavIndicator(): void {
   }
 }
 
-function bindHeaderRefraction(): void {
-  const header = document.querySelector<HTMLElement>(".site-header");
-  if (!header || header.dataset.scrollBound === "1") return;
-  header.dataset.scrollBound = "1";
-  const onScroll = () => {
-    const y = window.scrollY;
-    const opacity = Math.min(0.94, 0.68 + y / 520);
-    const sat = Math.min(190, 125 + y / 3);
-    header.style.backdropFilter = `blur(14px) saturate(${sat}%)`;
-    header.style.background = `rgba(235, 243, 255, ${opacity})`;
-  };
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-}
+
 
 function bindMagnetic(btn: Element): void {
   const node = btn as HTMLElement;
@@ -300,7 +290,7 @@ function bindSearch(): void {
   }
 
   // 搜索输入事件
-  let debounceTimer: NodeJS.Timeout;
+  let debounceTimer: ReturnType<typeof setTimeout>;
   searchInput.addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
     const query = (e.target as HTMLInputElement).value.trim();
@@ -347,7 +337,7 @@ function performSearch(query: string): void {
   const lowerQuery = query.toLowerCase();
 
   // 搜索技术文档
-  docs.forEach((doc) => {
+  techDocs.forEach((doc) => {
     if (doc.title.toLowerCase().includes(lowerQuery) || 
         doc.summary.toLowerCase().includes(lowerQuery)) {
       results.push({
@@ -360,7 +350,7 @@ function performSearch(query: string): void {
   });
 
   // 搜索项目
-  projects.forEach((project) => {
+  projectItems.forEach((project) => {
     if (project.title.toLowerCase().includes(lowerQuery) || 
         project.summary.toLowerCase().includes(lowerQuery)) {
       results.push({

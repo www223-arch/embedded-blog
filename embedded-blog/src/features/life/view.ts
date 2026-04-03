@@ -67,7 +67,6 @@ export function bindLifeFilter(): void {
   const filter = document.getElementById("lifeFilter");
   const grid = document.querySelector<HTMLElement>(".life-grid");
   const siteHeader = document.querySelector<HTMLElement>(".site-header");
-  const lifeCards = document.querySelectorAll<HTMLElement>(".life-card");
   
   if (!filter || !grid) return;
   
@@ -120,7 +119,7 @@ export function bindLifeFilter(): void {
   if (slides.length > 0 && prevBtn && nextBtn) {
     let currentIndex = 0;
     const totalSlides = slides.length;
-    let autoSlideInterval: NodeJS.Timeout;
+    let autoSlideInterval: ReturnType<typeof setTimeout>;
     
     function showSlide(index: number) {
       // 确保索引在有效范围内
@@ -130,7 +129,7 @@ export function bindLifeFilter(): void {
       const prevIndex = currentIndex;
       
       // 移除所有激活状态
-      slides.forEach((slide, i) => {
+      slides.forEach((slide) => {
         slide.classList.remove("active");
       });
       
@@ -203,14 +202,20 @@ export function bindLifeFilter(): void {
     // 计算初始位置和高度
     function calculateInitialPositions() {
       // 确保元素未固定
-      lifeHeader.classList.remove('fixed');
-      siteHeader.classList.remove('header-fixed');
+      if (lifeHeader) {
+        lifeHeader.classList.remove('fixed');
+      }
+      if (siteHeader) {
+        siteHeader.classList.remove('header-fixed');
+      }
       
       // 计算初始位置和高度
-      const rect = lifeHeader.getBoundingClientRect();
-      initialOffsetTop = rect.top + window.scrollY;
-      headerHeight = 56; // 固定值，与CSS中的top值一致
-      lifeHeaderHeight = rect.height;
+      if (lifeHeader) {
+        const rect = lifeHeader.getBoundingClientRect();
+        initialOffsetTop = rect.top + window.scrollY;
+        headerHeight = 56; // 固定值，与CSS中的top值一致
+        lifeHeaderHeight = rect.height;
+      }
     }
     
     // 创建占位符元素
@@ -259,23 +264,25 @@ export function bindLifeFilter(): void {
       const scrollY = window.scrollY;
       
       // 顶部导航固定
-      if (scrollY > 100) {
-        siteHeader.classList.add('header-fixed');
-      } else {
-        siteHeader.classList.remove('header-fixed');
+      if (siteHeader) {
+        if (scrollY > 100) {
+          siteHeader.classList.add('header-fixed');
+        } else {
+          siteHeader.classList.remove('header-fixed');
+        }
       }
       
       // 个人分享页头固定
       const triggerPoint = initialOffsetTop - headerHeight;
       
-      if (scrollY > triggerPoint && !isFixed) {
+      if (scrollY > triggerPoint && !isFixed && lifeHeader) {
         // 固定页头
         lifeHeader.classList.add('fixed');
         // 设置占位符高度为页头原始高度
         placeholder.style.display = 'block';
         placeholder.style.height = lifeHeaderHeight + 'px';
         isFixed = true;
-      } else if (scrollY <= triggerPoint && isFixed) {
+      } else if (scrollY <= triggerPoint && isFixed && lifeHeader) {
         // 取消固定
         lifeHeader.classList.remove('fixed');
         placeholder.style.display = 'none';

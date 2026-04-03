@@ -1,13 +1,13 @@
-export function mountScrollEffect(): void {
+export function mountScrollEffect(): () => void {
   const homeContainer = document.querySelector('.home-container');
-  const homeBackground = document.querySelector('.home-background');
-  const homeForeground = document.querySelector('.home-foreground');
+  const homeBackground = document.querySelector<HTMLElement>('.home-background');
+  const homeForeground = document.querySelector<HTMLElement>('.home-foreground');
   const navStage = document.getElementById('navStage');
   const stageCards = document.querySelectorAll('.stage-card');
   const heroTextElements = document.querySelectorAll('.hero .container p, .hero .container span');
   const rocketContainer = document.querySelector('.rocket-container') as HTMLElement;
   
-  if (!homeContainer || !homeBackground || !homeForeground || !navStage) return;
+  if (!homeContainer || !homeBackground || !homeForeground || !navStage) return () => {};
   
   let hasTriggered = false;
   let currentPhase: 'idle' | 'jet' | 'launch' = 'idle';
@@ -21,15 +21,17 @@ export function mountScrollEffect(): void {
     const scrollY = window.scrollY;
     const windowHeight = window.innerHeight;
     
-    // 计算滚动进度 (0-1)
+    // 璁＄畻婊氬姩杩涘害 (0-1)
     const scrollProgress = Math.min(scrollY / windowHeight, 1);
     
     // ????????????????
     const scale = 1 - scrollProgress * 0.4;
     const blur = scrollProgress * 12;
     
-    homeBackground.style.transform = `scale(${scale})`;
-    homeBackground.style.filter = `blur(${blur}px)`;
+    if (homeBackground) {
+      homeBackground.style.transform = `scale(${scale})`;
+      homeBackground.style.filter = `blur(${blur}px)`;
+    }
     
     // ?????????
     heroTextElements.forEach(element => {
@@ -44,8 +46,10 @@ export function mountScrollEffect(): void {
     });
     
     // ?????????
-    const translateY = scrollProgress * 80;
-    homeForeground.style.transform = `translateY(${translateY}px)`;
+    if (homeForeground) {
+      const translateY = scrollProgress * 80;
+      homeForeground.style.transform = `translateY(${translateY}px)`;
+    }
     
     // ????????????????
     if (rocketContainer) {
@@ -53,7 +57,7 @@ export function mountScrollEffect(): void {
     }
     
     // ??????????????
-    if (scrollProgress > 0.5 && !hasTriggered) {
+    if (scrollProgress > 0.5 && !hasTriggered && navStage) {
       hasTriggered = true;
       navStage.classList.add('visible');
       
