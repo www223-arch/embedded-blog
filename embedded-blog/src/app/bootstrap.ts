@@ -23,6 +23,9 @@ export function bootstrap(): void {
   registerDefaults();
   const app = document.querySelector<HTMLElement>("#app");
   if (!app) return;
+  const base = import.meta.env.BASE_URL;
+  document.documentElement.style.setProperty('--base-url', base);
+  document.documentElement.style.setProperty('--bg-projects', `url('${base}KSC - SLS_03302026_Artemis II at the pad~orig.jpg')`);
   app.innerHTML = shellTemplate();
   bindNav();
   bindNavControls();

@@ -1797,7 +1797,7 @@ body:has(.life-header.fixed) .bg-navigation {
 }
 
 .projects-page::before {
-  background-image: url('/KSC - SLS_03302026_Artemis II at the pad~orig.jpg');
+  background-image: var(--bg-projects);
 }
 
 .docs-page::before {
