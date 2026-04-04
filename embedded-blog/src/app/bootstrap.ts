@@ -263,8 +263,29 @@ function bindThemeToggle(): void {
 }
 
 function setTheme(theme: string): void {
+  const currentTheme = document.documentElement.getAttribute("data-theme");
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
+  
+  // 同步切换所有页面的背景
+  if (currentTheme !== theme) {
+    switchPageBackgrounds(theme);
+  }
+}
+
+function switchPageBackgrounds(theme: string): void {
+  // 获取当前所有页面的bg-slide元素
+  const lightSlides = document.querySelectorAll<HTMLElement>('.bg-slide-light');
+  const darkSlides = document.querySelectorAll<HTMLElement>('.bg-slide-dark');
+  
+  // 根据主题切换active类，实现交叉淡入淡出
+  if (theme === 'light') {
+    lightSlides.forEach(slide => slide.classList.add('active'));
+    darkSlides.forEach(slide => slide.classList.remove('active'));
+  } else {
+    lightSlides.forEach(slide => slide.classList.remove('active'));
+    darkSlides.forEach(slide => slide.classList.add('active'));
+  }
 }
 
 function initTheme(): void {

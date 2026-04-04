@@ -1,8 +1,13 @@
 import { projectItems } from "../../content/projects";
 
 export function renderProjects(): string {
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
   return `
   <div class="page-wrapper projects-page">
+    <div class="bg-slider">
+      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}"></div>
+      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}"></div>
+    </div>
     <section class="container section">
       <div class="grid-two">
       ${projectItems

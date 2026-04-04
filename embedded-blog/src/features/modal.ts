@@ -57,7 +57,7 @@ function renderProjectModal(project: typeof projectItems[0]): string {
       
       ${project.gallery.length > 0 ? `
         <div class="modal-section">
-          <h4>锟斤拷目图片</h4>
+          <h4>閿熸枻鎷风洰鍥剧墖</h4>
           <div class="modal-gallery">
             ${project.gallery.map(img => `<img src="${img}" alt="${project.title}" loading="lazy"/>`).join("")}
           </div>
@@ -65,7 +65,7 @@ function renderProjectModal(project: typeof projectItems[0]): string {
       ` : ""}
       
       <div class="modal-section">
-        <h4>锟斤拷目锟斤拷锟斤拷</h4>
+        <h4>閿熸枻鎷风洰閿熸枻鎷烽敓鏂ゆ嫹</h4>
         <ul class="modal-list">
           ${project.highlights.map(h => `<li>${h}</li>`).join("")}
         </ul>
@@ -73,7 +73,7 @@ function renderProjectModal(project: typeof projectItems[0]): string {
       
       ${project.links.length > 0 ? `
         <div class="modal-section">
-          <h4>锟斤拷锟斤拷锟斤拷锟�</h4>
+          <h4>閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓锟�</h4>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             ${project.links.map(link => `
               <a href="${link.href}" style="background: linear-gradient(135deg, var(--accent), #00ffbb); color: #000; padding: 10px 24px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">${link.label}</a>
@@ -101,14 +101,14 @@ function renderDocModal(doc: typeof techDocs[0]): string {
       </div>
       
       <div class="modal-section">
-        <h4>锟斤拷签</h4>
+        <h4>閿熸枻鎷风</h4>
         <div class="modal-tags">
           ${doc.tags.map(tag => `<span>${tag}</span>`).join("")}
         </div>
       </div>
       
       <div class="modal-section">
-        <h4>锟侥碉拷锟斤拷锟斤拷</h4>
+        <h4>閿熶茎纰夋嫹閿熸枻鎷烽敓鏂ゆ嫹</h4>
         <div class="modal-markdown">
           ${doc.markdown.split("\n").map(line => {
             if (line.startsWith("## ")) {
@@ -145,7 +145,7 @@ function renderLifeModal(post: typeof lifePosts[0]): string {
       </div>
       
       <div class="modal-section" style="text-align: center; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.1);">
-        <p style="color: rgba(255,255,255,0.5); font-style: italic;">锟斤拷锟洁精锟斤拷锟斤拷锟捷硷拷锟斤拷锟斤拷锟斤拷...</p>
+        <p style="color: rgba(255,255,255,0.5); font-style: italic;">閿熸枻鎷烽敓娲佺簿閿熸枻鎷烽敓鏂ゆ嫹閿熸嵎纭锋嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�...</p>
       </div>
     </div>
   `;

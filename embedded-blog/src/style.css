@@ -1796,16 +1796,76 @@ body:has(.life-header.fixed) .bg-navigation {
   }
 }
 
-.projects-page::before {
-  background-image: var(--bg-projects);
+.page-wrapper {
+  position: relative;
+  min-height: 100vh;
 }
 
-.docs-page::before {
+.page-wrapper .bg-slider {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.page-wrapper .bg-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 1.2s ease-in-out;
+}
+
+.page-wrapper .bg-slide.active {
+  opacity: 1;
+  z-index: 2;
+}
+
+.page-wrapper .bg-slider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 0;
+}
+
+.projects-page .bg-slide-light {
+  background-image: url('/xiangmuzuopingbaitian.jpg');
+  background-position: center 38%;
+}
+
+.projects-page .bg-slide-dark {
+  background-image: url('/xiangmuzuopingheitian.jpg');
+  background-position: center 25%;
+}
+
+.docs-page .bg-slide-light {
+  background-image: url('/jishuwendangbaitian.jpg');
+}
+
+.docs-page .bg-slide-dark {
+  background-image: url('/jishuwendheitian.jpg');
+  background-position: center 20%;
+}
+
+.board-page .bg-slide-light {
+  background-image: url('/liuyanbbaitian.jpg');
+}
+
+.board-page .bg-slide-dark {
   background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2000&q=80');
-}
-
-.board-page::before {
-  background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2000&q=80');
 }
 
 .page-wrapper .section {
@@ -1813,7 +1873,6 @@ body:has(.life-header.fixed) .bg-navigation {
   z-index: 1;
 }
 
-/* ?????????????????????????????? */
 .page-wrapper .container {
   background: transparent;
 }
