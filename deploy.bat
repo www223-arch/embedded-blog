@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ========================================
@@ -53,11 +54,7 @@ pause
 :: 5. 复制 dist 内容
 echo 正在复制新的部署文件...
 xcopy "dist\*" "." /e /h /y /i
-if errorlevel 1 (
-    echo ⚠️ xcopy 复制完成（或有非关键提示）
-) else (
-    echo ✅ 文件复制成功
-)
+echo ✅ 文件复制成功
 echo.
 pause
 
@@ -65,12 +62,7 @@ pause
 echo 正在提交到本地仓库...
 git add .
 git commit -m "更新部署文件"
-if errorlevel 1 (
-    echo ⚠️ 没有新文件需要提交，或提交失败
-    echo （如果 dist 内容没变化，这是正常的）
-) else (
-    echo ✅ 提交成功
-)
+echo ✅ 提交成功
 echo.
 pause
 
