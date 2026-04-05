@@ -1,5 +1,6 @@
 import { lifePosts } from "../../content/lifePosts";
 import { animateSwapOutIn } from "../../shared/motion";
+import { navigate } from "../../app/router";
 
 export function renderLife(): string {
   const tags = [...new Set(lifePosts.map((post) => post.tag))];
@@ -38,14 +39,7 @@ export function renderLife(): string {
           )
           .join("")}
         </div>
-    </section>
     <div style="height: 0px;"></div>
-    <div id="lifeModal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <div id="lifeModalContent"></div>
-      </div>
-    </div>
   </div>
   `;
 }
@@ -89,23 +83,10 @@ export function bindLifeFilter(): void {
     card.addEventListener("click", () => {
       const postId = card.getAttribute("data-id");
       if (postId) {
-        showLifeDetails(postId);
+        navigate("life-detail", { id: postId });
       }
     });
   });
-  
-  const modal = document.getElementById("lifeModal");
-  const closeBtn = document.querySelector(".modal-close");
-  if (modal && closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-    window.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
   
   const slides = document.querySelectorAll<HTMLElement>(".bg-slide");
   const prevBtn = document.getElementById("prevBg");
@@ -268,17 +249,4 @@ export function bindLifeFilter(): void {
   }
 }
 
-function showLifeDetails(postId: string): void {
-  const post = lifePosts.find((p) => p.id === postId);
-  const modal = document.getElementById("lifeModal");
-  const content = document.getElementById("lifeModalContent");
-  if (!post || !modal || !content) return;
-  
-  content.innerHTML = `
-    <h3>${post.title}</h3>
-    ${post.cover ? `<img src="${post.cover}" alt="${post.title}" style="width: 100%; border-radius: 10px; margin: 20px 0;"/>` : ""}
-    <div class="life-meta">${post.date} · ${post.tag}</div>
-    <p>${post.summary}</p>
-  `;
-  modal.style.display = "block";
-}
+

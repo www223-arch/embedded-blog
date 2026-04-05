@@ -1,5 +1,6 @@
 import { techDocs } from "../../content/docs";
 import { animateSwapOutIn } from "../../shared/motion";
+import { navigate } from "../../app/router";
 
 export function renderDocs(): string {
   const categories = [...new Set(techDocs.map((d) => d.category))];
@@ -30,11 +31,12 @@ export function renderDocs(): string {
     )
     .join("");
   const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const base = import.meta.env.BASE_URL;
   return `
   <div class="page-wrapper docs-page">
     <div class="bg-slider">
-      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}"></div>
-      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}"></div>
+      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}jishuwendangbaitian.jpg')"></div>
+      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}jishuwendheitian.jpg')"></div>
     </div>
     <section class="container section">
     <div class="filter reveal" id="docFilter">
@@ -43,12 +45,6 @@ export function renderDocs(): string {
     </div>
       <div class="grid-two" id="docGrid">${cards}</div>
     </section>
-    <div id="docModal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <div id="docModalContent"></div>
-      </div>
-    </div>
   </div>`;
 }
 
@@ -86,52 +82,13 @@ export function bindDocFilter(): void {
     });
   });
   
-  // ??????????
+  // 绑定卡片点击事件
   document.querySelectorAll(".doc-card").forEach((card) => {
     card.addEventListener("click", () => {
       const docId = card.getAttribute("data-id");
       if (docId) {
-        showDocDetails(docId);
+        navigate("doc-detail", { id: docId });
       }
     });
   });
-  
-  // ???????????
-  const modal = document.getElementById("docModal");
-  const closeBtn = document.querySelector(".modal-close");
-  if (modal && closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-    window.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
-}
-
-function showDocDetails(docId: string): void {
-  const doc = techDocs.find((d) => d.id === docId);
-  const modal = document.getElementById("docModal");
-  const content = document.getElementById("docModalContent");
-  if (!doc || !modal || !content) return;
-  
-  content.innerHTML = `
-    <h3>${doc.title}</h3>
-    <div class="pill">${doc.level}</div>
-    <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
-    <p class="doc-date">Updated: ${doc.updatedAt}</p>
-    <div class="doc-content">${markdownToHtml(doc.markdown)}</div>
-  `;
-  modal.style.display = "block";
-}
-
-function markdownToHtml(markdown: string): string {
-  return markdown
-    .replace(/^## (.*$)/gm, '<h4>$1</h4>')
-    .replace(/^### (.*$)/gm, '<h5>$1</h5>')
-    .replace(/\n\* (.*$)/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/\n\n/g, '<br><br>');
 }

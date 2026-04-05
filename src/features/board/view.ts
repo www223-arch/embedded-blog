@@ -4,11 +4,12 @@ const repo = new LocalMessageRepository();
 
 export function renderBoard(): string {
   const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const base = import.meta.env.BASE_URL;
   return `
   <div class="page-wrapper board-page">
     <div class="bg-slider">
-      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}"></div>
-      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}"></div>
+      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}liuyanbbaitian.jpg')"></div>
+      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2000&q=80')"></div>
     </div>
     <section class="container section">
     <p class="reveal page-intro">欢迎留下你的想法、建议或一句问候。</p>

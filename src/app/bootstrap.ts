@@ -3,7 +3,7 @@ import { runTypewriter } from "../features/home/typewriter";
 import { mountHomeParticles } from "../features/home/fx";
 import { mountScrollEffect } from "../features/home/scrollEffect";
 import { renderDocs, bindDocFilter } from "../features/docs/view";
-import { renderProjects } from "../features/projects/view";
+import { renderProjects, bindProjectClick } from "../features/projects/view";
 import { renderLife, bindLifeFilter } from "../features/life/view";
 import { renderBoard, mountBoard } from "../features/board/view";
 import { renderPlayground } from "../features/playground/view";
@@ -11,7 +11,7 @@ import { mountGames } from "../features/playground/games";
 import { mountPet } from "../features/pet/petEngine";
 import { animateViewEnter, bindHoverLift } from "../shared/motion";
 import { getCurrentRoute, navigate, onRouteChange } from "./router";
-import type { RouteKey } from "./types";
+import type { RouteKey, RouteParams } from "./types";
 import { getModule, getNavModules, register } from "./moduleRegistry";
 import { mountPaperCornerEasterEgg } from "../features/playground/entryEasterEgg";
 import gsap from "gsap";
@@ -42,17 +42,25 @@ function shellTemplate(): string {
   <header class="site-header">
     <a class="brand" href="#home">Embedded.dev</a>
     <nav id="nav"></nav>
-    <button class="nav-controls-btn" id="navControlsBtn" title="打开控制">
-      <span class="nav-controls-icon">☰</span>
-    </button>
-    <div class="nav-controls-panel" id="navControlsPanel">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="搜索..." />
-        <button class="search-btn" id="searchBtn">🔍</button>
+    <div class="nav-right">
+      <div class="nav-controls-container">
+        <button class="nav-controls-btn" id="navControlsBtn" title="打开控制">
+          <span class="nav-controls-icon">☰</span>
+        </button>
+        <div class="nav-controls-panel" id="navControlsPanel">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索..." />
+            <button class="search-btn" id="searchBtn">🔍</button>
+          </div>
+          <button class="theme-toggle" id="themeToggle" title="切换主题">
+            <span class="theme-icon sun">☀️</span>
+            <span class="theme-icon moon">🌙</span>
+          </button>
+        </div>
       </div>
-      <button class="theme-toggle" id="themeToggle" title="切换主题">
-        <span class="theme-icon sun">☀️</span>
-        <span class="theme-icon moon">🌙</span>
+      <button class="back-btn nav-back-btn" id="navBackBtn" title="返回" style="display: none;">
+        <span class="back-icon">←</span>
+        <span>返回</span>
       </button>
     </div>
   </header>
@@ -87,43 +95,62 @@ function bindNav(): void {
   // bindHeaderRefraction();
 }
 
-function renderRoute(route: RouteKey): void {
+function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void {
+  const { route, params } = routeInfo;
   const view = document.getElementById("view");
   const header = document.querySelector<HTMLElement>(".site-header");
+  const navBackBtn = document.getElementById("navBackBtn");
   if (!view) return;
-  const current = getModule(route);
-  if (!current) return;
   
-  // 添加页面类
-  view.className = route;
-  
-  if (header) {
-    header.classList.toggle("liquid-nav", route !== "home" && route !== "playground");
-    header.classList.toggle("header-hidden", route === "playground");
-    // 强制控制首页导航栏显示/隐藏
-    if (route === "home") {
-      header.style.display = "none";
-    } else {
-      header.style.display = "block";
-    }
-  }
-  document.title = `Embedded Blog | ${current.title}`;
-  view.innerHTML = current.render();
-  animateViewEnter(view);
-  bindHoverLift(".card");
-  
-  // 设置滚动位置
-  if (route === 'life') {
-    // 个人分享页面的初始滚动位置 - 滚动到内容区域
-    setTimeout(() => {
-      window.scrollTo(0, 1500*0.15);
-    }, 0);
+  // 处理详情页路由
+  if (route === "project-detail" && params.id) {
+    renderProjectDetail(params.id);
+    if (navBackBtn) navBackBtn.style.display = "inline-flex";
+  } else if (route === "life-detail" && params.id) {
+    renderLifeDetail(params.id);
+    if (navBackBtn) navBackBtn.style.display = "inline-flex";
+  } else if (route === "doc-detail" && params.id) {
+    renderDocDetail(params.id);
+    if (navBackBtn) navBackBtn.style.display = "inline-flex";
   } else {
-    // 其他页面重置到顶部
-    window.scrollTo(0, 0);
+    const current = getModule(route);
+    if (!current) return;
+    
+    // 隐藏返回按钮
+    if (navBackBtn) navBackBtn.style.display = "none";
+    
+    // 添加页面类
+    view.className = route;
+    
+    if (header) {
+      header.classList.toggle("liquid-nav", route !== "home" && route !== "playground");
+      header.classList.toggle("header-hidden", route === "playground");
+      // 强制控制首页导航栏显示/隐藏
+      if (route === "home") {
+        header.style.display = "none";
+      } else {
+        header.style.display = "block";
+      }
+    }
+    document.title = `Embedded Blog | ${current.title}`;
+    view.innerHTML = current.render();
+    animateViewEnter(view);
+    bindHoverLift(".card");
+    
+    // 设置滚动位置
+    if (route === 'life') {
+      // 个人分享页面的初始滚动位置 - 滚动到内容区域
+      setTimeout(() => {
+        window.scrollTo(0, 1500*0.15);
+      }, 0);
+    } else {
+      // 其他页面重置到顶部
+      window.scrollTo(0, 0);
+    }
+    
+    current.afterMount?.();
   }
   
-  current.afterMount?.();
   document.querySelectorAll("#nav button").forEach((b) => {
     b.classList.toggle("active", b.getAttribute("data-route") === route);
   });
@@ -135,11 +162,138 @@ function renderRoute(route: RouteKey): void {
       header.style.display = "none";
       header.classList.remove("header-fixed");
     }
+  } else {
+    // 详情页显示导航栏
+    const header = document.querySelector<HTMLElement>(".site-header");
+    if (header) {
+      header.style.display = "block";
+      header.classList.add("liquid-nav");
+    }
   }
   
   const cornerLabel = document.getElementById("paperCornerLabel");
   if (cornerLabel) cornerLabel.textContent = route === "playground" ? "Back" : "Play";
   updateNavIndicator();
+}
+
+function renderProjectDetail(projectId: string): void {
+  const project = projectItems.find((p) => p.id === projectId);
+  const view = document.getElementById("view");
+  if (!project || !view) return;
+  
+  view.className = "project-detail";
+  document.title = `Embedded Blog | ${project.title}`;
+  const base = import.meta.env.BASE_URL;
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
+  
+  view.innerHTML = `
+    <div class="page-wrapper project-detail-page">
+      <div class="bg-slider">
+        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}xiangmuzuopingbaitian.jpg')"></div>
+        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}xiangmuzuopingheitian.jpg')"></div>
+      </div>
+      <section class="container section">
+        <h1>${project.title}</h1>
+        <div class="project-gallery">
+          ${project.gallery.map(img => `<img src="${img}" alt="${project.title}" loading="lazy"/>`).join("")}
+        </div>
+        <div class="project-content">
+          <p class="project-summary">${project.summary}</p>
+          <div class="tags">${project.stack.map((tag) => `<span>${tag}</span>`).join("")}</div>
+          <h2>项目亮点</h2>
+          <ul>${project.highlights.map((h) => `<li>${h}</li>`).join("")}</ul>
+          ${project.links.length > 0 ? `
+          <div class="project-links">
+            ${project.links.map((link) => `<a href="${link.href}" class="btn">${link.label}</a>`).join("")}
+          </div>
+          ` : ""}
+        </div>
+      </section>
+    </div>
+  `;
+  
+  animateViewEnter(view);
+}
+
+function renderLifeDetail(postId: string): void {
+  const post = lifePosts.find((p) => p.id === postId);
+  const view = document.getElementById("view");
+  if (!post || !view) return;
+  
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const base = import.meta.env.BASE_URL;
+  
+  view.className = "life-detail";
+  document.title = `Embedded Blog | ${post.title}`;
+  
+  view.innerHTML = `
+    <div class="page-wrapper life-detail-page">
+      <div class="bg-slider">
+        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}guosai2.jpg')"></div>
+        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}xiaoshao.jpg')"></div>
+      </div>
+      <section class="container section">
+        <h1>${post.title}</h1>
+        <div class="life-meta">
+          <span class="life-date">${post.date}</span>
+          <span class="life-tag">${post.tag}</span>
+        </div>
+        <div class="life-content">
+          <p>${post.summary}</p>
+          ${post.cover ? `
+          <div class="life-gallery">
+            <img src="${post.cover}" alt="${post.title}" loading="lazy"/>
+          </div>
+          ` : ""}
+        </div>
+      </section>
+    </div>
+  `;
+  
+  animateViewEnter(view);
+}
+
+function renderDocDetail(docId: string): void {
+  const doc = techDocs.find((d) => d.id === docId);
+  const view = document.getElementById("view");
+  if (!doc || !view) return;
+  
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const base = import.meta.env.BASE_URL;
+  
+  view.className = "doc-detail";
+  document.title = `Embedded Blog | ${doc.title}`;
+  
+  view.innerHTML = `
+    <div class="page-wrapper doc-detail-page">
+      <div class="bg-slider">
+        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}jishuwendangbaitian.jpg')"></div>
+        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}jishuwendheitian.jpg')"></div>
+      </div>
+      <section class="container section">
+        <h1>${doc.title}</h1>
+        <div class="doc-meta">
+          <span class="doc-level">${doc.level}</span>
+          <span class="doc-date">${doc.updatedAt}</span>
+          <span class="doc-reading-time">${doc.readingTime}</span>
+          <span class="doc-views">${doc.views} views</span>
+        </div>
+        <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+        <div class="doc-content">${markdownToHtml(doc.markdown)}</div>
+      </section>
+    </div>
+  `;
+  
+  animateViewEnter(view);
+}
+
+function markdownToHtml(markdown: string): string {
+  return markdown
+    .replace(/^## (.*$)/gm, '<h4>$1</h4>')
+    .replace(/^### (.*$)/gm, '<h5>$1</h5>')
+    .replace(/\n\* (.*$)/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n\n/g, '<br><br>');
 }
 
 function registerDefaults(): void {
@@ -158,7 +312,7 @@ function registerDefaults(): void {
     }
   });
   register({ key: "docs", label: "技术文档", title: "技术文档", render: renderDocs, afterMount: bindDocFilter });
-  register({ key: "projects", label: "项目作品", title: "项目作品", render: renderProjects });
+  register({ key: "projects", label: "项目作品", title: "项目作品", render: renderProjects, afterMount: bindProjectClick });
   register({ key: "life", label: "个人分享", title: "个人分享", render: renderLife, afterMount: bindLifeFilter });
   register({ key: "board", label: "留言板", title: "留言板", render: renderBoard, afterMount: mountBoard });
   register({
@@ -248,6 +402,24 @@ function bindNavControls(): void {
       navControlsPanel.classList.remove("active");
     }
   });
+
+  // 绑定返回按钮点击事件
+  const navBackBtn = document.getElementById("navBackBtn");
+  if (navBackBtn) {
+    navBackBtn.addEventListener("click", () => {
+      const currentRoute = getCurrentRoute();
+      if (currentRoute.route === "project-detail") {
+        navigate("projects");
+      } else if (currentRoute.route === "life-detail") {
+        navigate("life");
+      } else if (currentRoute.route === "doc-detail") {
+        navigate("docs");
+      }
+      // 关闭控制面板
+      navControlsBtn.classList.remove("active");
+      navControlsPanel.classList.remove("active");
+    });
+  }
 }
 
 // 主题切换功能

@@ -5,11 +5,12 @@ export function mountHomeParticles(): void {
   if (!ctx) return;
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const particleCount = 20; // 减少粒子数量，提高性能
   
   let mouseX = -1000;
   let mouseY = -1000;
   
-  const particles = Array.from({ length: 34 }, () => ({
+  const particles = Array.from({ length: particleCount }, () => ({
     x: Math.random(),
     y: Math.random(),
     r: 1 + Math.random() * 2.6,
@@ -30,6 +31,9 @@ export function mountHomeParticles(): void {
     const h = canvas.clientHeight;
     ctx.clearRect(0, 0, w, h);
     
+    // 优化连线算法，使用平方距离避免平方根计算
+    const maxDistanceSquared = 150 * 150;
+    
     // Draw connections
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
@@ -37,9 +41,10 @@ export function mountHomeParticles(): void {
         const p2 = particles[j];
         const dx = (p1.x - p2.x) * w;
         const dy = (p1.y - p2.y) * h;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const distanceSquared = dx * dx + dy * dy;
         
-        if (distance < 150) {
+        if (distanceSquared < maxDistanceSquared) {
+          const distance = Math.sqrt(distanceSquared);
           const alpha = (1 - distance / 150) * 0.3;
           ctx.beginPath();
           ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
@@ -57,9 +62,10 @@ export function mountHomeParticles(): void {
       const py = p.y * h;
       const dx = px - mouseX;
       const dy = py - mouseY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      const distanceSquared = dx * dx + dy * dy;
       
-      if (distance < 200 && distance > 0) {
+      if (distanceSquared < 40000 && distanceSquared > 0) { // 200^2 = 40000
+        const distance = Math.sqrt(distanceSquared);
         const force = Math.pow((200 - distance) / 200, 2);
         const angle = Math.atan2(dy, dx);
         p.vx += Math.cos(angle) * force * 0.15 / w;

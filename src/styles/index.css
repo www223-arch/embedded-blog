@@ -1,0 +1,12 @@
+/* 主样式文件 */
+
+/* 导入基础样式 */
+@import './base.css';
+
+/* 导入组件样式 */
+@import './components.css';
+
+/* 导入页面样式 */
+@import './pages/home.css';
+@import './pages/projects.css';
+@import './pages/life.css';

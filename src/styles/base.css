@@ -1,0 +1,160 @@
+:root {
+  /* 背景色 */
+  --bg-0: #000000;
+  --bg-1: #050505;
+  
+  /* 表面色 */
+  --surface: rgba(255, 255, 255, 0.08);
+  --surface-1: rgba(255, 255, 255, 0.12);
+  --surface-2: rgba(255, 255, 255, 0.16);
+  
+  /* 文本色 */
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.6);
+  
+  /* 强调色 */
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  
+  /* 趣味色 */
+  --play-accent: #ff6b6b;
+  
+  /* 线条色 */
+  --line: rgba(255, 255, 255, 0.1);
+  
+  /* 字体族 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", Monaco, "Cascadia Code", monospace;
+  
+  /* 字号 */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  
+  /* 行高 */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+  
+  /* 动画时长 */
+  --duration-fast: 0.2s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.45s;
+  --duration-slower: 0.6s;
+  
+  /* 缓动函数 */
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 基础重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-0);
+  color: var(--text);
+  line-height: var(--leading-normal);
+  overflow-x: hidden;
+}
+
+/* 标题样式 */
+h1 {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  margin-bottom: 0.75rem;
+}
+
+h3 {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: var(--leading-normal);
+  margin-bottom: 0.5rem;
+}
+
+h4 {
+  font-size: var(--text-xl);
+  font-weight: 500;
+  line-height: var(--leading-normal);
+  margin-bottom: 0.5rem;
+}
+
+/* 段落样式 */
+p {
+  margin-bottom: 1rem;
+  line-height: var(--leading-normal);
+}
+
+/* 链接样式 */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* 列表样式 */
+ul, ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+/* 容器样式 */
+.container {
+  width: min(1100px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 部分样式 */
+.section {
+  padding: 58px 0;
+}
+
+/* 响应式断点 */
+@media (max-width: 639px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .section {
+    padding: 40px 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .container {
+    padding: 0 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 32px;
+  }
+}
