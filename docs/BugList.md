@@ -1,7 +1,7 @@
 # BugList - 已知问题及解决方案
 
-> **最后更新**: 2026-04-04  
-> **更新内容**: 创建BugList文档，记录编码问题和背景黑屏问题
+> **最后更新**: 2026-04-05  
+> **更新内容**: 添加导航控制面板和返回按钮位置调整，以及返回按钮样式修改
 
 ---
 
@@ -181,7 +181,47 @@ export default defineConfig({
 
 ### 解决方案
 
-#### 方案 1: 使用 import.meta.env.BASE_URL（推荐）
+#### 方案 1: 使用 CSS 变量 + JavaScript 注入（推荐）
+
+**修改位置**: `src/app/bootstrap.ts`
+
+```typescript
+export function bootstrap(): void {
+  registerDefaults();
+  const app = document.querySelector<HTMLElement>("#app");
+  if (!app) return;
+  const base = import.meta.env.BASE_URL;
+  document.documentElement.style.setProperty('--base-url', base);
+  app.innerHTML = shellTemplate();
+  ...
+}
+```
+
+**修改位置**: `src/style.css`
+
+```css
+.projects-page .bg-slide-light {
+  background-image: url('var(--base-url)xiangmuzuopingbaitian.jpg');
+}
+
+.projects-page .bg-slide-dark {
+  background-image: url('var(--base-url)xiangmuzuopingheitian.jpg');
+}
+
+.docs-page .bg-slide-light {
+  background-image: url('var(--base-url)jishuwendangbaitian.jpg');
+}
+
+.docs-page .bg-slide-dark {
+  background-image: url('var(--base-url)jishuwendheitian.jpg');
+}
+
+.board-page .bg-slide-light {
+  background-image: url('var(--base-url)liuyanbbaitian.jpg');
+}
+```
+
+#### 方案 2: 在组件中使用 import.meta.env.BASE_URL
 
 **修改位置**: `src/features/life/view.ts`
 
@@ -202,30 +242,7 @@ export function renderLife(): string {
 }
 ```
 
-**修改位置**: `src/app/bootstrap.ts`
-
-```typescript
-export function bootstrap(): void {
-  registerDefaults();
-  const app = document.querySelector<HTMLElement>("#app");
-  if (!app) return;
-  const base = import.meta.env.BASE_URL;
-  document.documentElement.style.setProperty('--base-url', base);
-  document.documentElement.style.setProperty('--bg-projects', `url('${base}KSC - SLS_03302026_Artemis II at the pad~orig.jpg')`);
-  app.innerHTML = shellTemplate();
-  ...
-}
-```
-
-**修改位置**: `src/style.css`
-
-```css
-.projects-page::before {
-  background-image: var(--bg-projects);
-}
-```
-
-#### 方案 2: 使用相对路径
+#### 方案 3: 使用相对路径
 
 对于 CSS 中的背景图片，可以使用相对路径：
 
@@ -249,6 +266,7 @@ export function bootstrap(): void {
 1. **使用 BASE_URL**: 所有静态资源路径都使用 `import.meta.env.BASE_URL` 拼接
 2. **测试部署**: 在本地测试时，确保 `base` 配置正确
 3. **代码审查**: 检查新增的图片路径是否考虑了 base 路径
+4. **样式模块化**: 采用 CSS 变量管理路径，提高可维护性
 
 ### 相关文件
 
@@ -436,3 +454,135 @@ console.timeEnd('myOperation');
 ---
 
 **提示**: 遇到新问题时，请及时更新此文档，记录问题原因和解决方案，方便后续查阅。
+
+---
+
+## 导航和UI调整
+
+### 问题描述
+
+**症状**：
+- 导航控制面板展开位置不符合预期
+- 返回按钮位置和样式需要调整
+- 详情页返回按钮样式与整体风格不一致
+
+**出现时间**: 2026-04-05  
+**影响范围**: 所有页面的导航控制和详情页返回功能  
+**严重程度**: 中
+
+### 根本原因
+
+**问题分析**：
+1. 导航控制面板默认展开在按钮下方，需要调整为展开在按钮左侧
+2. 返回按钮位置需要调整，使其与导航控制按钮的位置更加协调
+3. 返回按钮的符号和文字颜色需要调整为白色，以符合整体风格
+
+### 解决方案
+
+#### 导航控制面板位置调整
+
+**修改位置**: `src/style.css`
+
+```css
+/* 导航控制容器 */
+.nav-controls-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* 导航控制面板 */
+.nav-controls-panel {
+  position: absolute;
+  top: 50%;
+  right: 90%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 100;
+  min-width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(-50%) translateX(10px);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-controls-panel.active {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
+```
+
+#### 导航控制按钮位置调整
+
+**修改位置**: `src/style.css`
+
+```css
+/* 导航控制按钮 */
+.nav-controls-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  top: 10px;
+  z-index: 101;
+}
+```
+
+#### 返回按钮位置和样式调整
+
+**修改位置**: `src/style.css`
+
+```css
+/* 导航控制按钮下方的返回按钮 */
+.nav-back-btn {
+  margin-bottom: 0;
+  font-size: var(--text-sm);
+  padding: 8px 16px;
+  display: none;
+  position: relative;
+  top: -30px;
+  right: -10px;
+  color: white;
+}
+
+.nav-back-btn .back-icon {
+  color: white;
+}
+```
+
+### 验证修复
+
+1. 启动开发服务器：`npm run dev`
+2. 访问各个页面，检查导航控制面板的展开位置
+3. 打开详情页，检查返回按钮的位置和样式
+4. 切换主题，检查返回按钮的颜色是否正确显示
+
+### 预防措施
+
+1. **UI组件模块化**: 将导航和控制组件的样式进行模块化，提高可维护性
+2. **样式一致性**: 确保所有UI元素的样式与整体风格保持一致
+3. **响应式设计**: 考虑不同屏幕尺寸下的布局调整
+4. **用户体验测试**: 在修改UI时，进行充分的用户体验测试
+
+### 相关文件
+
+- [src/style.css](../src/style.css)
+- [src/app/bootstrap.ts](../src/app/bootstrap.ts)
