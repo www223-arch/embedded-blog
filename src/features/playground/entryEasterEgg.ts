@@ -52,7 +52,7 @@ function triggerOpen(corner: HTMLElement): void {
   if ("vibrate" in navigator) navigator.vibrate([30, 35, 30]);
   corner.classList.add("paper-corner-shake");
   const now = getCurrentRoute();
-  const target = now === "playground" ? "home" : "playground";
+  const target = now.route === "playground" ? "home" : "playground";
   const label = document.getElementById("paperCornerLabel");
   if (label) label.textContent = target === "playground" ? "Play" : "Back";
   runPageFlip(target, () => {

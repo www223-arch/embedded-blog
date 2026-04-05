@@ -1,4 +1,8 @@
-export type RouteKey = "home" | "docs" | "projects" | "life" | "board" | "playground" | "project-detail" | "life-detail" | "doc-detail";\n\nexport type RouteParams = {\n  id?: string;\n};
+export type RouteKey = "home" | "docs" | "projects" | "life" | "board" | "playground" | "project-detail" | "life-detail" | "doc-detail";
+
+export type RouteParams = {
+  id?: string;
+};
 
 export type MountContext = {
   app: HTMLElement;
