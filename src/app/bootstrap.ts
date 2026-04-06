@@ -18,6 +18,7 @@ import gsap from "gsap";
 import { techDocs } from "../content/docs";
 import { projectItems } from "../content/projects";
 import { lifePosts } from "../content/lifePosts";
+import { lazyLoadBackgrounds } from "../shared/lazyLoad";
 
 export function bootstrap(): void {
   registerDefaults();
@@ -189,8 +190,8 @@ function renderProjectDetail(projectId: string): void {
   view.innerHTML = `
     <div class="page-wrapper project-detail-page">
       <div class="bg-slider">
-        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}xiangmuzuopingbaitian.jpg')"></div>
-        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}xiangmuzuopingheitian.jpg')"></div>
+        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}xiangmuzuopingbaitian.jpg"></div>
+        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiangmuzuopingheitian.jpg"></div>
       </div>
       <section class="container section">
         <h1>${project.title}</h1>
@@ -213,6 +214,9 @@ function renderProjectDetail(projectId: string): void {
   `;
   
   animateViewEnter(view);
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }
 
 function renderLifeDetail(postId: string): void {
@@ -229,8 +233,8 @@ function renderLifeDetail(postId: string): void {
   view.innerHTML = `
     <div class="page-wrapper life-detail-page">
       <div class="bg-slider">
-        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}guosai2.jpg')"></div>
-        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}xiaoshao.jpg')"></div>
+        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}guosai2.jpg"></div>
+        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiaoshao.jpg"></div>
       </div>
       <section class="container section">
         <h1>${post.title}</h1>
@@ -251,6 +255,9 @@ function renderLifeDetail(postId: string): void {
   `;
   
   animateViewEnter(view);
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }
 
 function renderDocDetail(docId: string): void {
@@ -267,8 +274,8 @@ function renderDocDetail(docId: string): void {
   view.innerHTML = `
     <div class="page-wrapper doc-detail-page">
       <div class="bg-slider">
-        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}jishuwendangbaitian.jpg')"></div>
-        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}jishuwendheitian.jpg')"></div>
+        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}jishuwendangbaitian.jpg"></div>
+        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}jishuwendheitian.jpg"></div>
       </div>
       <section class="container section">
         <h1>${doc.title}</h1>
@@ -285,6 +292,9 @@ function renderDocDetail(docId: string): void {
   `;
   
   animateViewEnter(view);
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }
 
 function markdownToHtml(markdown: string): string {

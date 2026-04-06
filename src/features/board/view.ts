@@ -1,4 +1,5 @@
 import { LocalMessageRepository } from "./repo";
+import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
 
 const repo = new LocalMessageRepository();
 
@@ -8,8 +9,8 @@ export function renderBoard(): string {
   return `
   <div class="page-wrapper board-page">
     <div class="bg-slider">
-      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}liuyanbbaitian.jpg')"></div>
-      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2000&q=80')"></div>
+      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}liuyanbbaitian.jpg"></div>
+      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2000&q=80"></div>
     </div>
     <section class="container section">
     <p class="reveal page-intro">欢迎留下你的想法、建议或一句问候。</p>
@@ -56,6 +57,9 @@ export function mountBoard(): void {
   });
 
   renderList();
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }
 
 function escapeHtml(input: string): string {

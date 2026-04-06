@@ -1,6 +1,7 @@
 import { lifePosts } from "../../content/lifePosts";
 import { animateSwapOutIn } from "../../shared/motion";
 import { navigate } from "../../app/router";
+import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
 
 export function renderLife(): string {
   const tags = [...new Set(lifePosts.map((post) => post.tag))];
@@ -8,9 +9,9 @@ export function renderLife(): string {
   return `
   <div class="page-wrapper life-page">
     <div class="bg-slider">
-      <div class="bg-slide active" style="background-image: url('${base}guosai2.jpg')"></div>
-      <div class="bg-slide" style="background-image: url('${base}xiaoshao.jpg')"></div>
-      <div class="bg-slide" style="background-image: url('${base}Giobal.jpg')"></div>
+      <div class="bg-slide active" data-bg="${base}guosai2.jpg"></div>
+      <div class="bg-slide" data-bg="${base}xiaoshao.jpg"></div>
+      <div class="bg-slide" data-bg="${base}Giobal.jpg"></div>
     </div>
     <div class="bg-navigation">
       <button class="bg-nav-btn prev" id="prevBg">&lt;</button>
@@ -247,6 +248,9 @@ export function bindLifeFilter(): void {
       updateScroll();
     }, { passive: true });
   }
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }
 
 

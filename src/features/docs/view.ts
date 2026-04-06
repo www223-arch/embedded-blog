@@ -1,6 +1,7 @@
 import { techDocs } from "../../content/docs";
 import { animateSwapOutIn } from "../../shared/motion";
 import { navigate } from "../../app/router";
+import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
 
 export function renderDocs(): string {
   const categories = [...new Set(techDocs.map((d) => d.category))];
@@ -35,8 +36,8 @@ export function renderDocs(): string {
   return `
   <div class="page-wrapper docs-page">
     <div class="bg-slider">
-      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}jishuwendangbaitian.jpg')"></div>
-      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}jishuwendheitian.jpg')"></div>
+      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}jishuwendangbaitian.jpg"></div>
+      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}jishuwendheitian.jpg"></div>
     </div>
     <section class="container section">
     <div class="filter reveal" id="docFilter">
@@ -91,4 +92,7 @@ export function bindDocFilter(): void {
       }
     });
   });
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }

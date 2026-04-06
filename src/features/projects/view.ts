@@ -1,5 +1,6 @@
 import { projectItems } from "../../content/projects";
 import { navigate } from "../../app/router";
+import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
 
 export function renderProjects(): string {
   const theme = document.documentElement.getAttribute("data-theme") || "light";
@@ -7,8 +8,8 @@ export function renderProjects(): string {
   return `
   <div class="page-wrapper projects-page">
     <div class="bg-slider">
-      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" style="background-image: url('${base}xiangmuzuopingbaitian.jpg')"></div>
-      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" style="background-image: url('${base}xiangmuzuopingheitian.jpg')"></div>
+      <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}xiangmuzuopingbaitian.jpg"></div>
+      <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiangmuzuopingheitian.jpg"></div>
     </div>
     <section class="container section">
       <div class="grid-two">
@@ -41,4 +42,7 @@ export function bindProjectClick() {
       }
     });
   });
+  
+  // 初始化背景图片懒加载
+  lazyLoadBackgrounds();
 }
