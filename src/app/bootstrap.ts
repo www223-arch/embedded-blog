@@ -19,6 +19,7 @@ import { techDocs } from "../content/docs";
 import { projectItems } from "../content/projects";
 import { lifePosts } from "../content/lifePosts";
 import { lazyLoadBackgrounds } from "../shared/lazyLoad";
+import { renderSidebar, bindSidebarEvents, renderContentWithHeadingIds } from "../shared/sidebar";
 
 export function bootstrap(): void {
   registerDefaults();
@@ -65,6 +66,7 @@ function shellTemplate(): string {
       </button>
     </div>
   </header>
+  <div id="sidebarContainer"></div>
   <main id="view"></main>
   `;
 }
@@ -99,9 +101,10 @@ function bindNav(): void {
 function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void {
   const { route, params } = routeInfo;
   const view = document.getElementById("view");
+  const sidebarContainer = document.getElementById("sidebarContainer");
   const header = document.querySelector<HTMLElement>(".site-header");
   const navBackBtn = document.getElementById("navBackBtn");
-  if (!view) return;
+  if (!view || !sidebarContainer) return;
   
   // 处理详情页路由
   if (route === "project-detail" && params.id) {
@@ -114,6 +117,9 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
     renderDocDetail(params.id);
     if (navBackBtn) navBackBtn.style.display = "inline-flex";
   } else {
+    // 清空侧边栏
+    sidebarContainer.innerHTML = "";
+    
     const current = getModule(route);
     if (!current) return;
     
@@ -180,40 +186,115 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
 function renderProjectDetail(projectId: string): void {
   const project = projectItems.find((p) => p.id === projectId);
   const view = document.getElementById("view");
-  if (!project || !view) return;
+  const sidebarContainer = document.getElementById("sidebarContainer");
+  if (!project || !view || !sidebarContainer) return;
   
   view.className = "project-detail";
   document.title = `Embedded Blog | ${project.title}`;
   const base = import.meta.env.BASE_URL;
   const theme = document.documentElement.getAttribute("data-theme") || "light";
   
+  const markdownContent = (project as any).markdown ? renderContentWithHeadingIds((project as any).markdown) : "";
+  
+  // 渲染主内容
   view.innerHTML = `
-    <div class="page-wrapper project-detail-page">
-      <div class="bg-slider">
-        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}xiangmuzuopingbaitian.jpg"></div>
-        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiangmuzuopingheitian.jpg"></div>
-      </div>
-      <section class="container section">
-        <h1>${project.title}</h1>
-        <div class="project-gallery">
-          ${project.gallery.map(img => `<img src="${img}" alt="${project.title}" loading="lazy"/>`).join("")}
+    <div class="main-content">
+      <div class="page-wrapper project-detail-page">
+        <div class="bg-slider">
+          <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}xiangmuzuopingbaitian.jpg"></div>
+          <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiangmuzuopingheitian.jpg"></div>
         </div>
-        <div class="project-content">
-          <p class="project-summary">${project.summary}</p>
-          <div class="tags">${project.stack.map((tag) => `<span>${tag}</span>`).join("")}</div>
-          <h2>项目亮点</h2>
-          <ul>${project.highlights.map((h) => `<li>${h}</li>`).join("")}</ul>
-          ${project.links.length > 0 ? `
-          <div class="project-links">
-            ${project.links.map((link) => `<a href="${link.href}" class="btn">${link.label}</a>`).join("")}
+        
+        <!-- 左侧栏目 -->
+        <div style="width: 160px; position: fixed; left: 20px; top: 90px; z-index: 10;">
+          <!-- 合并的卡片 -->
+          <div style="border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(10, 10, 15, 0.6); border-radius: 8px; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+            <!-- 文件目录 -->
+            <div id="fileTreePanel" style="border-bottom: 1px solid rgba(255, 255, 255, 0.2);">
+              <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                  <span>📁</span>
+                  <span>文件</span>
+                </div>
+                <button id="fileTreeToggle" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 12px; padding: 4px;">▼</button>
+              </div>
+              <div id="fileTreeContent" style="max-height: 200px; overflow-y: auto; padding: 8px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; padding: 0 6px;">项目</div>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="margin-bottom: 2px;">
+                    <div class="file-link" data-route="project-detail" data-id="edge-gateway" style="display: block; padding: 6px 8px; color: var(--text); font-size: 12px; cursor: pointer; border-radius: 4px; transition: background var(--duration-fast) var(--ease-out);">
+                      工业边缘网关
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px;">
+                    <div class="file-link active" data-route="project-detail" data-id="motor-control" style="display: block; padding: 6px 8px; color: white; font-size: 12px; cursor: pointer; border-radius: 4px; background: var(--accent);">
+                      STM32 PID 电机
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- 页面目录 -->
+            <div id="tocPanel">
+              <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                  <span>📋</span>
+                  <span>目录</span>
+                </div>
+                <button id="tocToggle" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 12px; padding: 4px;">▼</button>
+              </div>
+              <div id="tocContent" style="max-height: 200px; overflow-y: auto; padding: 8px;">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="margin-bottom: 2px;">
+                    <div class="toc-link" style="display: block; padding: 4px 8px; color: var(--text-muted); font-size: 11px; cursor: pointer; border-radius: 4px; transition: all var(--duration-fast) var(--ease-out);">
+                      项目概述
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px; padding-left: 12px;">
+                    <div class="toc-link" style="display: block; padding: 4px 8px; color: var(--text-muted); font-size: 11px; cursor: pointer; border-radius: 4px; transition: all var(--duration-fast) var(--ease-out);">
+                      技术实现
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px;">
+                    <div class="toc-link active" style="display: block; padding: 4px 8px; color: var(--accent); font-size: 11px; cursor: pointer; border-radius: 4px; background: rgba(0, 113, 227, 0.1);">
+                      项目总结
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-          ` : ""}
         </div>
-      </section>
+        
+        <section class="container section" style="margin-left: 180px; margin-top: 20px;">
+              <h1>${project.title}</h1>
+              <div class="project-gallery">
+                ${project.gallery.map(img => `<img src="${img}" alt="${project.title}" loading="lazy"/>`).join("")}
+              </div>
+              <div class="project-content">
+                <p class="project-summary">${project.summary}</p>
+                <div class="tags">${project.stack.map((tag) => `<span>${tag}</span>`).join("")}</div>
+                <h2>项目亮点</h2>
+                <ul>${project.highlights.map((h) => `<li>${h}</li>`).join("")}</ul>
+                ${project.links.length > 0 ? `
+                <div class="project-links">
+                  ${project.links.map((link) => `<a href="${link.href}" class="btn">${link.label}</a>`).join("")}
+                </div>
+                ` : ""}
+                ${markdownContent ? `
+                <div class="project-markdown">
+                  ${markdownContent}
+                </div>
+                ` : ""}
+              </div>
+        </section>
+      </div>
     </div>
   `;
   
   animateViewEnter(view);
+  bindSidebarEvents();
   
   // 初始化背景图片懒加载
   lazyLoadBackgrounds();
@@ -222,39 +303,118 @@ function renderProjectDetail(projectId: string): void {
 function renderLifeDetail(postId: string): void {
   const post = lifePosts.find((p) => p.id === postId);
   const view = document.getElementById("view");
-  if (!post || !view) return;
-  
-  const theme = document.documentElement.getAttribute("data-theme") || "light";
-  const base = import.meta.env.BASE_URL;
+  const sidebarContainer = document.getElementById("sidebarContainer");
+  if (!post || !view || !sidebarContainer) return;
   
   view.className = "life-detail";
   document.title = `Embedded Blog | ${post.title}`;
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const base = import.meta.env.BASE_URL;
   
+  const markdownContent = (post as any).markdown ? renderContentWithHeadingIds((post as any).markdown) : "";
+  
+  // 渲染主内容
   view.innerHTML = `
-    <div class="page-wrapper life-detail-page">
-      <div class="bg-slider">
-        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}guosai2.jpg"></div>
-        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiaoshao.jpg"></div>
-      </div>
-      <section class="container section">
-        <h1>${post.title}</h1>
-        <div class="life-meta">
-          <span class="life-date">${post.date}</span>
-          <span class="life-tag">${post.tag}</span>
+    <div class="main-content">
+      <div class="page-wrapper life-detail-page">
+        <div class="bg-slider">
+          <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}guosai2.jpg"></div>
+          <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}xiaoshao.jpg"></div>
         </div>
-        <div class="life-content">
-          <p>${post.summary}</p>
-          ${post.cover ? `
-          <div class="life-gallery">
-            <img src="${post.cover}" alt="${post.title}" loading="lazy"/>
+        
+        <!-- 左侧栏目 -->
+        <div style="width: 160px; position: fixed; left: 20px; top: 90px; z-index: 10;">
+          <!-- 合并的卡片 -->
+          <div style="border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(10, 10, 15, 0.6); border-radius: 8px; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+            <!-- 文件目录 -->
+            <div id="fileTreePanel" style="border-bottom: 1px solid rgba(255, 255, 255, 0.2);">
+              <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                  <span>📁</span>
+                  <span>文件</span>
+                </div>
+                <button id="fileTreeToggle" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 12px; padding: 4px;">▼</button>
+              </div>
+              <div id="fileTreeContent" style="max-height: 200px; overflow-y: auto; padding: 8px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; padding: 0 6px;">生活</div>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="margin-bottom: 2px;">
+                    <div class="file-link" data-route="life-detail" data-id="desk-upgrade" style="display: block; padding: 6px 8px; color: var(--text); font-size: 12px; cursor: pointer; border-radius: 4px; transition: background var(--duration-fast) var(--ease-out);">
+                      桌面升级
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px;">
+                    <div class="file-link" data-route="life-detail" data-id="mountain-weekend" style="display: block; padding: 6px 8px; color: var(--text); font-size: 12px; cursor: pointer; border-radius: 4px; transition: background var(--duration-fast) var(--ease-out);">
+                      山间周末
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px;">
+                    <div class="file-link" data-route="life-detail" data-id="street-light" style="display: block; padding: 6px 8px; color: var(--text); font-size: 12px; cursor: pointer; border-radius: 4px; transition: background var(--duration-fast) var(--ease-out);">
+                      街灯
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- 页面目录 -->
+            <div id="tocPanel">
+              <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                  <span>📋</span>
+                  <span>目录</span>
+                </div>
+                <button id="tocToggle" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 12px; padding: 4px;">▼</button>
+              </div>
+              <div id="tocContent" style="max-height: 200px; overflow-y: auto; padding: 8px;">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="margin-bottom: 2px;">
+                    <div class="toc-link" style="display: block; padding: 4px 8px; color: var(--text-muted); font-size: 11px; cursor: pointer; border-radius: 4px; transition: all var(--duration-fast) var(--ease-out);">
+                      项目概述
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px; padding-left: 12px;">
+                    <div class="toc-link" style="display: block; padding: 4px 8px; color: var(--text-muted); font-size: 11px; cursor: pointer; border-radius: 4px; transition: all var(--duration-fast) var(--ease-out);">
+                      技术实现
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px;">
+                    <div class="toc-link active" style="display: block; padding: 4px 8px; color: var(--accent); font-size: 11px; cursor: pointer; border-radius: 4px; background: rgba(0, 113, 227, 0.1);">
+                      项目总结
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-          ` : ""}
         </div>
-      </section>
+        
+        <section class="container section" style="margin-left: 180px; margin-top: 20px;">
+          <h1>${post.title}</h1>
+          <div class="life-meta">
+            <span class="life-date">${post.date}</span>
+            <span class="life-tag">${post.tag}</span>
+          </div>
+          <div class="life-content">
+            <p>${post.summary}</p>
+            ${post.cover ? `
+            <div class="life-gallery">
+              <img src="${post.cover}" alt="${post.title}" loading="lazy"/>
+            </div>
+            ` : ""}
+            ${markdownContent ? `
+            <div class="life-markdown">
+              ${markdownContent}
+            </div>
+            ` : ""}
+          </div>
+        </section>
+      </div>
     </div>
   `;
   
   animateViewEnter(view);
+  bindSidebarEvents();
   
   // 初始化背景图片懒加载
   lazyLoadBackgrounds();
@@ -263,48 +423,105 @@ function renderLifeDetail(postId: string): void {
 function renderDocDetail(docId: string): void {
   const doc = techDocs.find((d) => d.id === docId);
   const view = document.getElementById("view");
-  if (!doc || !view) return;
-  
-  const theme = document.documentElement.getAttribute("data-theme") || "light";
-  const base = import.meta.env.BASE_URL;
+  const sidebarContainer = document.getElementById("sidebarContainer");
+  if (!doc || !view || !sidebarContainer) return;
   
   view.className = "doc-detail";
   document.title = `Embedded Blog | ${doc.title}`;
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const base = import.meta.env.BASE_URL;
   
+  const markdownContent = renderContentWithHeadingIds(doc.markdown);
+  
+  // 渲染主内容
   view.innerHTML = `
-    <div class="page-wrapper doc-detail-page">
-      <div class="bg-slider">
-        <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}jishuwendangbaitian.jpg"></div>
-        <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}jishuwendheitian.jpg"></div>
-      </div>
-      <section class="container section">
-        <h1>${doc.title}</h1>
-        <div class="doc-meta">
-          <span class="doc-level">${doc.level}</span>
-          <span class="doc-date">${doc.updatedAt}</span>
-          <span class="doc-reading-time">${doc.readingTime}</span>
-          <span class="doc-views">${doc.views} views</span>
+    <div class="main-content">
+      <div class="page-wrapper doc-detail-page">
+        <div class="bg-slider">
+          <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}jishuwendangbaitian.jpg"></div>
+          <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}jishuwendheitian.jpg"></div>
         </div>
-        <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
-        <div class="doc-content">${markdownToHtml(doc.markdown)}</div>
-      </section>
+        
+        <!-- 左侧栏目 -->
+        <div style="width: 160px; position: fixed; left: 20px; top: 90px; z-index: 10;">
+          <!-- 合并的卡片 -->
+          <div style="border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(10, 10, 15, 0.6); border-radius: 8px; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+            <!-- 文件目录 -->
+            <div id="fileTreePanel" style="border-bottom: 1px solid rgba(255, 255, 255, 0.2);">
+              <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                  <span>📁</span>
+                  <span>文件</span>
+                </div>
+                <button id="fileTreeToggle" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 12px; padding: 4px;">▼</button>
+              </div>
+              <div id="fileTreeContent" style="max-height: 200px; overflow-y: auto; padding: 8px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; padding: 0 6px;">文档</div>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="margin-bottom: 2px;">
+                    <div class="file-link active" data-route="doc-detail" data-id="architecture-overview" style="display: block; padding: 6px 8px; color: white; font-size: 12px; cursor: pointer; border-radius: 4px; background: var(--accent);">
+                      架构概述
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- 页面目录 -->
+            <div id="tocPanel">
+              <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                  <span>📋</span>
+                  <span>目录</span>
+                </div>
+                <button id="tocToggle" style="background: none; border: none; cursor: pointer; color: var(--text); font-size: 12px; padding: 4px;">▼</button>
+              </div>
+              <div id="tocContent" style="max-height: 200px; overflow-y: auto; padding: 8px;">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="margin-bottom: 2px;">
+                    <div class="toc-link" style="display: block; padding: 4px 8px; color: var(--text-muted); font-size: 11px; cursor: pointer; border-radius: 4px; transition: all var(--duration-fast) var(--ease-out);">
+                      项目概述
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px; padding-left: 12px;">
+                    <div class="toc-link" style="display: block; padding: 4px 8px; color: var(--text-muted); font-size: 11px; cursor: pointer; border-radius: 4px; transition: all var(--duration-fast) var(--ease-out);">
+                      技术实现
+                    </div>
+                  </li>
+                  <li style="margin-bottom: 2px;">
+                    <div class="toc-link active" style="display: block; padding: 4px 8px; color: var(--accent); font-size: 11px; cursor: pointer; border-radius: 4px; background: rgba(0, 113, 227, 0.1);">
+                      项目总结
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <section class="container section" style="margin-left: 180px; margin-top: 20px;">
+          <h1>${doc.title}</h1>
+          <div class="doc-meta">
+            <span class="doc-level">${doc.level}</span>
+            <span class="doc-date">${doc.updatedAt}</span>
+            <span class="doc-reading-time">${doc.readingTime}</span>
+            <span class="doc-views">${doc.views} views</span>
+          </div>
+          <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+          <div class="doc-content">${markdownContent}</div>
+        </section>
+      </div>
     </div>
   `;
   
   animateViewEnter(view);
+  bindSidebarEvents();
   
   // 初始化背景图片懒加载
   lazyLoadBackgrounds();
 }
 
-function markdownToHtml(markdown: string): string {
-  return markdown
-    .replace(/^## (.*$)/gm, '<h4>$1</h4>')
-    .replace(/^### (.*$)/gm, '<h5>$1</h5>')
-    .replace(/\n\* (.*$)/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/\n\n/g, '<br><br>');
-}
+
 
 function registerDefaults(): void {
   register({

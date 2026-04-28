@@ -1,0 +1,167 @@
+/* 侧边栏样式 - 三栏布局：文件目录 + 页面目录 + 正文 */
+
+/* 侧边栏容器 - 包含文件目录和页面目录两列 */
+#sidebarContainer {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  width: 440px;
+  height: calc(100vh - 70px);
+  background: #1a1a1a;
+  border-right: 1px solid #333;
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
+}
+
+/* 侧边栏切换按钮 */
+.sidebar-toggle {
+  position: fixed;
+  top: 80px;
+  left: 10px;
+  z-index: 200;
+  background: #ff4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 文件目录 - 最左侧第一列 */
+.file-tree-panel {
+  width: 220px;
+  border-right: 1px solid #333;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.file-tree-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  background: #222;
+}
+
+.file-tree-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.file-tree-content {
+  padding: 12px;
+}
+
+.file-tree-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 8px;
+  padding: 0 8px;
+  text-transform: uppercase;
+}
+
+.file-tree-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-tree-item {
+  margin-bottom: 2px;
+}
+
+.file-tree-link {
+  display: block;
+  padding: 8px 12px;
+  color: #ccc;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.file-tree-link:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.file-tree-link.active {
+  background: #0071e3;
+  color: #fff;
+}
+
+/* 页面目录 - 中间第二列，靠着文件目录 */
+.toc-panel {
+  width: 220px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.toc-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  background: #222;
+}
+
+.toc-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.toc-content {
+  padding: 12px;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-item {
+  margin-bottom: 2px;
+}
+
+.toc-link {
+  display: block;
+  padding: 6px 12px;
+  color: #999;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.toc-link:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.toc-link.active {
+  color: #0071e3;
+}
+
+.toc-level-2 {
+  padding-left: 0;
+  font-weight: 500;
+}
+
+.toc-level-3 {
+  padding-left: 16px;
+  font-size: 12px;
+}
+
+.toc-level-4 {
+  padding-left: 28px;
+  font-size: 12px;
+}
+
+.toc-empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+}

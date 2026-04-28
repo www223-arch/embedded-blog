@@ -26,7 +26,8 @@ export const projectSchema = z.object({
       label: z.string(),
       href: z.string()
     })
-  )
+  ),
+  markdown: z.string().optional()
 });
 
 export type TechDoc = z.infer<typeof docSchema>;

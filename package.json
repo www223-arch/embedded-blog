@@ -9,13 +9,17 @@
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
     "add-card": "node scripts/add-card.js",
-    "generate-content": "python scripts/generate_content.py"
+    "generate-content": "python scripts/generate_content.py",
+    "docs:dev": "vitepress dev docs-vitepress",
+    "docs:build": "vitepress build docs-vitepress",
+    "docs:preview": "vitepress preview docs-vitepress"
   },
   "homepage": "https://www223.gitee.io/embedded-blog/",
   "devDependencies": {
     "gh-pages": "^6.3.0",
     "typescript": "~5.9.3",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vitepress": "^1.6.4"
   },
   "dependencies": {
     "gsap": "^3.14.2",
