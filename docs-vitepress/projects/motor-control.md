@@ -14,7 +14,7 @@ highlights:
   - CAN bus multi-machine communication
   - Graphical debugging interface
 gallery:
-  - /iss064e041512~orig.jpg
+  - /images/projects/motor-control/cover.svg
 links:
   - label: Technical Docs
     href: '#'
