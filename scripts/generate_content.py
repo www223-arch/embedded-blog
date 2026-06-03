@@ -2,7 +2,64 @@
 #!/usr/bin/env python3
 
 import yaml
+import re
 from pathlib import Path
+
+
+def parse_vitepress_frontmatter(content: str):
+    """Parse VitePress frontmatter from Markdown content"""
+    frontmatter_pattern = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
+    match = frontmatter_pattern.match(content)
+    
+    if not match:
+        return {}, content
+    
+    frontmatter_str = match.group(1)
+    markdown_content = content[match.end():]
+    
+    try:
+        import yaml
+        frontmatter = yaml.safe_load(frontmatter_str)
+        return frontmatter if frontmatter else {}, markdown_content
+    except Exception as e:
+        print(f"Warning: Failed to parse frontmatter: {e}")
+        return {}, content
+
+
+def load_vitepress_content(vitepress_dir: Path, subdir: str):
+    """Load content from VitePress directory structure"""
+    items = []
+    target_dir = vitepress_dir / subdir
+    
+    if not target_dir.exists():
+        return items
+    
+    # Load index.md for overview (if exists)
+    index_file = target_dir / "index.md"
+    
+    # Load all .md files except index.md
+    for md_file in sorted(target_dir.glob("*.md")):
+        if md_file.name == "index.md":
+            continue
+            
+        try:
+            with open(md_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            frontmatter, markdown = parse_vitepress_frontmatter(content)
+            
+            # Derive id from filename
+            item_id = md_file.stem
+            frontmatter["id"] = item_id
+            
+            # Store markdown content
+            frontmatter["markdown"] = markdown
+            
+            items.append(frontmatter)
+        except Exception as e:
+            print(f"Warning: Cannot load {md_file}: {e}")
+    
+    return items
 
 
 def load_folder_content(directory: Path):
@@ -78,7 +135,9 @@ def generate_projects_ts(projects, output_path: Path):
         
         links = p.get("links", [])
         links_str = ", ".join(f'{{ label: {escape_string(l.get("label", ""))}, href: {escape_string(l.get("href", ""))} }}' for l in links)
-        lines.append(f'    links: [{links_str}]')
+        lines.append(f'    links: [{links_str}],')
+        
+        lines.append(f'    markdown: {escape_string(p.get("markdown", ""))}')
         lines.append('  },')
     
     lines.append('] as const;')
@@ -132,6 +191,7 @@ def generate_life_posts_ts(life_posts, output_path: Path):
     lines.append('  tag: string;')
     lines.append('  summary: string;')
     lines.append('  cover: string;')
+    lines.append('  markdown?: string;')
     lines.append('};')
     lines.append('')
     lines.append('export const lifePosts: LifePost[] = [')
@@ -143,7 +203,8 @@ def generate_life_posts_ts(life_posts, output_path: Path):
         lines.append(f'    date: {escape_string(lp.get("date", ""))},')
         lines.append(f'    tag: {escape_string(lp.get("tag", ""))},')
         lines.append(f'    summary: {escape_string(lp.get("summary", ""))},')
-        lines.append(f'    cover: {escape_string(lp.get("cover", ""))}')
+        lines.append(f'    cover: {escape_string(lp.get("cover", ""))},')
+        lines.append(f'    markdown: {escape_string(lp.get("markdown", ""))}')
         lines.append('  },')
     
     lines.append('];')
@@ -156,6 +217,7 @@ def generate_life_posts_ts(life_posts, output_path: Path):
 def main():
     base_dir = Path(__file__).parent.parent
     content_dir = base_dir / "content"
+    vitepress_dir = base_dir / "docs-vitepress"
     src_content_dir = base_dir / "src" / "content"
     
     print("=" * 60)
@@ -163,13 +225,20 @@ def main():
     print("=" * 60)
     print()
     
-    projects = load_folder_content(content_dir / "projects")
+    # Try loading from VitePress first, fallback to content directory
+    projects = load_vitepress_content(vitepress_dir, "projects")
+    if not projects:
+        projects = load_folder_content(content_dir / "projects")
     print(f"Found {len(projects)} projects")
     
-    docs = load_folder_content(content_dir / "docs")
+    docs = load_vitepress_content(vitepress_dir, "docs")
+    if not docs:
+        docs = load_folder_content(content_dir / "docs")
     print(f"Found {len(docs)} docs")
     
-    life_posts = load_folder_content(content_dir / "life")
+    life_posts = load_vitepress_content(vitepress_dir, "life")
+    if not life_posts:
+        life_posts = load_folder_content(content_dir / "life")
     print(f"Found {len(life_posts)} life posts")
     print()
     
