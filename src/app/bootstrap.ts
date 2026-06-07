@@ -11,7 +11,7 @@ import { renderPlayground } from "../features/playground/view";
 import { mountGames } from "../features/playground/games";
 import { mountPet } from "../features/pet/petEngine";
 import { mountPaperCornerEasterEgg } from "../features/playground/entryEasterEgg";
-import { animateViewEnter, bindHoverLift } from "../shared/motion";
+import { animateViewEnter, bindHoverLift, bindPointerSpotlight } from "../shared/motion";
 import { lazyLoadBackgrounds } from "../shared/lazyLoad";
 import { bindDocumentShell, renderDocumentShell } from "../shared/documentView";
 import { techDocs } from "../content/docs";
@@ -33,6 +33,7 @@ export function bootstrap(): void {
   app.innerHTML = shellTemplate();
   bindNav();
   bindNavControls();
+  bindQuickDock();
   bindThemeToggle();
   bindSearch();
   initTheme();
@@ -70,6 +71,11 @@ function shellTemplate(): string {
     </header>
     <div id="sidebarContainer"></div>
     <main id="view"></main>
+    <div class="quick-dock" id="quickDock" aria-label="Quick actions">
+      <button type="button" data-quick-action="search" aria-label="Focus search" title="Search">/</button>
+      <button type="button" data-quick-action="top" aria-label="Back to top" title="Back to top">^</button>
+      <button type="button" data-quick-action="random" aria-label="Open random item" title="Random">*</button>
+    </div>
   `;
 }
 
@@ -132,6 +138,7 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
     view.innerHTML = current.render();
     animateViewEnter(view);
     bindHoverLift(".card");
+    bindPointerSpotlight(".reading-card");
     window.scrollTo(0, route === "life" ? 225 : 0);
     current.afterMount?.();
   }
@@ -152,6 +159,7 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
 
   const cornerLabel = document.getElementById("paperCornerLabel");
   if (cornerLabel) cornerLabel.textContent = route === "playground" ? "Back" : "Play";
+  updateQuickDock(route);
   updateNavIndicator();
 }
 
@@ -176,6 +184,11 @@ function renderProjectDetail(projectId: string): void {
     metas: [{ label: "Stack", value: project.stack.join(" / ") }],
     tags: project.stack,
     heroImages: project.gallery,
+    insights: project.highlights.slice(0, 4).map((highlight, index) => ({
+      label: `Highlight ${index + 1}`,
+      value: highlight
+    })),
+    actions: project.links,
     contentClass: "project-content"
   }));
   mountDetailView(view);
@@ -205,6 +218,11 @@ function renderLifeDetail(postId: string): void {
     ],
     tags: [post.tag],
     heroImages: post.cover ? [post.cover] : undefined,
+    insights: [
+      { label: "Date", value: post.date || "Draft" },
+      { label: "Topic", value: post.tag },
+      { label: "Format", value: "Personal note" }
+    ],
     contentClass: "life-content"
   }));
   mountDetailView(view);
@@ -235,6 +253,12 @@ function renderDocDetail(docId: string): void {
       { label: "Views", value: doc.views }
     ],
     tags: doc.tags,
+    insights: [
+      { label: "Category", value: doc.category, description: "Knowledge base" },
+      { label: "Level", value: doc.level },
+      { label: "Updated", value: doc.updatedAt },
+      { label: "Reading", value: doc.readingTime }
+    ],
     contentClass: "doc-content"
   }));
   mountDetailView(view);
@@ -340,7 +364,7 @@ function bindNavControls(): void {
 
   document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
-    if (!target.closest("#navControlsBtn") && !target.closest("#navControlsPanel")) {
+    if (!target.closest("#navControlsBtn") && !target.closest("#navControlsPanel") && !target.closest("#quickDock")) {
       navControlsBtn.classList.remove("active");
       navControlsPanel.classList.remove("active");
     }
@@ -354,6 +378,45 @@ function bindNavControls(): void {
     navControlsBtn.classList.remove("active");
     navControlsPanel.classList.remove("active");
   });
+}
+
+function bindQuickDock(): void {
+  const dock = document.getElementById("quickDock");
+  if (!dock) return;
+
+  dock.querySelectorAll<HTMLButtonElement>("button[data-quick-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.quickAction;
+      if (action === "search") openSearchPanel();
+      if (action === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+      if (action === "random") openRandomContent();
+    });
+  });
+}
+
+function updateQuickDock(route: RouteKey): void {
+  const dock = document.getElementById("quickDock");
+  if (!dock) return;
+  dock.classList.toggle("visible", route !== "home" && route !== "playground");
+}
+
+function openSearchPanel(): void {
+  const navControlsBtn = document.getElementById("navControlsBtn");
+  const navControlsPanel = document.getElementById("navControlsPanel");
+  const searchInput = document.getElementById("searchInput") as HTMLInputElement | null;
+  navControlsBtn?.classList.add("active");
+  navControlsPanel?.classList.add("active");
+  searchInput?.focus();
+}
+
+function openRandomContent(): void {
+  const pool: Array<{ route: RouteKey; id: string }> = [
+    ...techDocs.map((doc) => ({ route: "doc-detail" as RouteKey, id: doc.id })),
+    ...projectItems.map((project) => ({ route: "project-detail" as RouteKey, id: project.id })),
+    ...lifePosts.map((post) => ({ route: "life-detail" as RouteKey, id: post.id }))
+  ];
+  const item = pool[Math.floor(Math.random() * pool.length)];
+  if (item) navigate(item.route, { id: item.id });
 }
 
 function bindThemeToggle(): void {

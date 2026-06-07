@@ -1,20 +1,31 @@
 import { docSchema, type TechDoc } from "./schema";
-import architectureOverview from "../../docs-vitepress/docs/architecture-overview.md?raw";
+import { idFromPath, loadMarkdownEntries, valueAsNumber, valueAsString, valueAsStringArray, type Frontmatter } from "./frontmatter";
 
-const docsRaw = [
-  {
-    id: "architecture-overview",
-    title: "Architecture Overview",
-    category: "System Design",
-    tags: ["Architecture", "System Design", "Frontend"],
-    level: "beginner",
-    createdAt: "2026-04-01",
-    updatedAt: "2026-04-01",
-    readingTime: "10 min",
-    views: 0,
-    summary: "Overview of the embedded blog architecture and extension mechanism.",
-    markdown: architectureOverview
-  }
-] as const;
+const docModules = import.meta.glob<string>("../../docs-vitepress/docs/**/*.md", {
+  eager: true,
+  import: "default",
+  query: "?raw"
+});
 
-export const techDocs: TechDoc[] = docsRaw.map((item) => docSchema.parse(item));
+export const techDocs: TechDoc[] = loadMarkdownEntries<Frontmatter>(docModules, {
+  level: "beginner",
+  views: 0,
+  readingTime: "5 min"
+})
+  .filter((entry) => !entry.path.endsWith("/index.md"))
+  .map((entry) => {
+    const data = entry.frontmatter;
+    return docSchema.parse({
+      id: valueAsString(data.id, idFromPath(entry.path)),
+      title: valueAsString(data.title, "Untitled Document"),
+      category: valueAsString(data.category, "Notes"),
+      tags: valueAsStringArray(data.tags),
+      level: valueAsString(data.level, "beginner"),
+      createdAt: valueAsString(data.createdAt, valueAsString(data.updatedAt)),
+      updatedAt: valueAsString(data.updatedAt),
+      readingTime: valueAsString(data.readingTime, "5 min"),
+      views: valueAsNumber(data.views),
+      summary: valueAsString(data.summary, ""),
+      markdown: entry.markdown
+    });
+  });

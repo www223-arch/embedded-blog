@@ -1,32 +1,30 @@
 import { techDocs } from "../../content/docs";
 import { animateSwapOutIn } from "../../shared/motion";
-import { navigate } from "../../app/router";
 import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
+import { navigateFromCard } from "../../shared/routeTransition";
 
 export function renderDocs(): string {
   const categories = [...new Set(techDocs.map((d) => d.category))];
   const cards = techDocs
     .map(
-      (doc) => `
-      <article class="card doc-card" data-category="${doc.category}" data-id="${doc.id}">
-        <div class="pill">${doc.level}</div>
-        <h3>${doc.title}</h3>
-        <p>${doc.summary}</p>
-        <div class="doc-meta">
-          <div class="meta-item">
-            <span class="meta-icon">?</span>
-            <span>${doc.updatedAt}</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-icon">??</span>
-            <span>${doc.readingTime}</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-icon">??</span>
-            <span>${doc.views} views</span>
-          </div>
+      (doc, index) => `
+      <article class="card reading-card doc-card" data-category="${doc.category}" data-id="${doc.id}">
+        <div class="card-index">${String(index + 1).padStart(2, "0")}</div>
+        <div class="card-kicker-row">
+          <span>${doc.category}</span>
+          <span>${doc.level}</span>
         </div>
-        <div class="tags">${doc.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+        <div class="card-title-row">
+          <h3>${doc.title}</h3>
+          <span class="card-read-cue">Read -&gt;</span>
+        </div>
+        <p class="card-summary">${doc.summary}</p>
+        <div class="doc-meta compact-meta">
+          <span>Updated ${doc.updatedAt}</span>
+          <span>${doc.readingTime}</span>
+          <span>${doc.views} views</span>
+        </div>
+        <div class="tags">${doc.tags.slice(0, 5).map((tag) => `<span>${tag}</span>`).join("")}</div>
       </article>
     `
     )
@@ -88,7 +86,7 @@ export function bindDocFilter(): void {
     card.addEventListener("click", () => {
       const docId = card.getAttribute("data-id");
       if (docId) {
-        navigate("doc-detail", { id: docId });
+        navigateFromCard(card, "doc-detail", { id: docId });
       }
     });
   });
