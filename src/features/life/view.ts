@@ -1,7 +1,7 @@
 import { lifePosts } from "../../content/lifePosts";
 import { animateSwapOutIn } from "../../shared/motion";
-import { navigate } from "../../app/router";
 import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
+import { navigateFromCard } from "../../shared/routeTransition";
 
 export function renderLife(): string {
   const tags = [...new Set(lifePosts.map((post) => post.tag))];
@@ -29,12 +29,19 @@ export function renderLife(): string {
       <div class="grid-two life-grid">
         ${lifePosts
           .map(
-            (post) => `
-            <article class="card life-card" data-tag="${post.tag}" data-id="${post.id}">
-              <img src="${post.cover}" alt="${post.title}" loading="lazy" />
-              <div class="life-meta">${post.date} · ${post.tag}</div>
-              <h3>${post.title}</h3>
-              <p>${post.summary}</p>
+            (post, index) => `
+            <article class="card reading-card life-card" data-tag="${post.tag}" data-id="${post.id}">
+              <div class="card-index">${String(index + 1).padStart(2, "0")}</div>
+              ${renderLifeMedia(post.cover, post.title, post.tag)}
+              <div class="card-kicker-row">
+                <span>${post.tag}</span>
+                <span>${post.date || "Draft"}</span>
+              </div>
+              <div class="card-title-row">
+                <h3>${post.title}</h3>
+                <span class="card-read-cue">View -&gt;</span>
+              </div>
+              <p class="card-summary">${post.summary}</p>
             </article>
           `
           )
@@ -84,7 +91,7 @@ export function bindLifeFilter(): void {
     card.addEventListener("click", () => {
       const postId = card.getAttribute("data-id");
       if (postId) {
-        navigate("life-detail", { id: postId });
+        navigateFromCard(card, "life-detail", { id: postId });
       }
     });
   });
@@ -253,4 +260,29 @@ export function bindLifeFilter(): void {
   lazyLoadBackgrounds();
 }
 
+function renderLifeMedia(cover: string, title: string, tag: string): string {
+  if (cover.trim()) {
+    return `
+      <div class="card-media">
+        <img src="${resolveAssetPath(cover)}" alt="${title}" loading="lazy" />
+      </div>
+    `;
+  }
 
+  return `
+    <div class="card-media card-note-preview" aria-hidden="true">
+      <span>${tag}</span>
+      <i></i>
+      <i></i>
+      <i></i>
+    </div>
+  `;
+}
+
+function resolveAssetPath(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return trimmed;
+  const base = import.meta.env.BASE_URL || "/";
+  if (base === "/" || trimmed.startsWith(base)) return trimmed;
+  return `${base.replace(/\/$/, "")}${trimmed}`;
+}
