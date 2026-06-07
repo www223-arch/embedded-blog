@@ -1,6 +1,6 @@
 import { projectItems } from "../../content/projects";
-import { navigate } from "../../app/router";
 import { lazyLoadBackgrounds } from "../../shared/lazyLoad";
+import { navigateFromCard } from "../../shared/routeTransition";
 
 export function renderProjects(): string {
   const theme = document.documentElement.getAttribute("data-theme") || "light";
@@ -16,12 +16,22 @@ export function renderProjects(): string {
       ${projectItems
         .map(
           (item, index) => `
-        <article class="card project-card ${index % 2 === 0 ? 'project-card-left' : 'project-card-right'}" data-id="${item.id}">
-          <img src="${item.gallery[0]}" alt="${item.title}" loading="lazy"/>
-          <h3>${item.title}</h3>
-          <p>${item.summary}</p>
-          <div class="tags">${item.stack.map((tag) => `<span>${tag}</span>`).join("")}</div>
-          <ul>${item.highlights.map((h) => `<li>${h}</li>`).join("")}</ul>
+        <article class="card reading-card project-card ${index % 2 === 0 ? 'project-card-left' : 'project-card-right'}" data-id="${item.id}">
+          <div class="card-index">${String(index + 1).padStart(2, "0")}</div>
+          <div class="card-media">
+            <img src="${resolveAssetPath(item.gallery[0] || "")}" alt="${item.title}" loading="lazy"/>
+          </div>
+          <div class="card-kicker-row">
+            <span>Project</span>
+            <span>${item.stack.length} stack</span>
+          </div>
+          <div class="card-title-row">
+            <h3>${item.title}</h3>
+            <span class="card-read-cue">Open -&gt;</span>
+          </div>
+          <p class="card-summary">${item.summary}</p>
+          <div class="tags">${item.stack.slice(0, 4).map((tag) => `<span>${tag}</span>`).join("")}</div>
+          <ul class="card-highlights">${item.highlights.slice(0, 3).map((h) => `<li>${h}</li>`).join("")}</ul>
         </article>
       `
         )
@@ -38,11 +48,19 @@ export function bindProjectClick() {
     card.addEventListener("click", () => {
       const projectId = card.getAttribute("data-id");
       if (projectId) {
-        navigate("project-detail", { id: projectId });
+        navigateFromCard(card, "project-detail", { id: projectId });
       }
     });
   });
   
   // 初始化背景图片懒加载
   lazyLoadBackgrounds();
+}
+
+function resolveAssetPath(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return trimmed;
+  const base = import.meta.env.BASE_URL || "/";
+  if (base === "/" || trimmed.startsWith(base)) return trimmed;
+  return `${base.replace(/\/$/, "")}${trimmed}`;
 }

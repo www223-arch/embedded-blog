@@ -57,6 +57,8 @@ function checkMarkdownFile(section, filePath) {
     return;
   }
 
+  if (frontmatter.status === "archived") return;
+
   for (const field of section.required) {
     if (!hasValue(frontmatter[field])) {
       issues.push(`${rel}: missing required field "${field}"`);
@@ -102,14 +104,28 @@ function parseSimpleYaml(source) {
   const result = {};
   const lines = source.split(/\r?\n/);
   let currentKey = null;
+  let currentObject = null;
 
   for (const line of lines) {
     if (!line.trim()) continue;
 
     const listItem = line.match(/^\s*-\s+(.+)$/);
-    if (listItem && currentKey) {
-      if (!Array.isArray(result[currentKey])) result[currentKey] = [];
-      result[currentKey].push(cleanValue(listItem[1]));
+    if (listItem && currentKey && Array.isArray(result[currentKey])) {
+      const item = listItem[1];
+      const objectPair = item.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+      if (objectPair) {
+        currentObject = { [objectPair[1]]: cleanValue(objectPair[2]) };
+        result[currentKey].push(currentObject);
+      } else {
+        result[currentKey].push(cleanValue(item));
+        currentObject = null;
+      }
+      continue;
+    }
+
+    const nestedPair = line.match(/^\s{2,}([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (nestedPair && currentObject) {
+      currentObject[nestedPair[1]] = cleanValue(nestedPair[2]);
       continue;
     }
 
@@ -117,6 +133,7 @@ function parseSimpleYaml(source) {
     if (!pair) continue;
 
     currentKey = pair[1];
+    currentObject = null;
     const rawValue = pair[2].trim();
     result[currentKey] = rawValue ? cleanValue(rawValue) : [];
   }

@@ -8,6 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
+    "sync:gh-pages": "node scripts/sync-gh-pages.js",
+    "sync:all": "node scripts/sync-gh-pages.js --all",
     "add-card": "node scripts/add-card.js",
     "new:doc": "node scripts/add-card.js docs",
     "new:project": "node scripts/add-card.js projects",

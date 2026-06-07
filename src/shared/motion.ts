@@ -28,6 +28,20 @@ export function bindHoverLift(selector: string): void {
   });
 }
 
+export function bindPointerSpotlight(selector: string): void {
+  containerSafeQuery(selector).forEach((el) => {
+    el.addEventListener("pointermove", (event) => {
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
+      el.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
+      el.classList.add("spotlight-active");
+    });
+    el.addEventListener("pointerleave", () => {
+      el.classList.remove("spotlight-active");
+    });
+  });
+}
+
 export function animateSwapOutIn(target: HTMLElement, beforeIn: () => void): void {
   gsap.to(target, {
     y: 8,
