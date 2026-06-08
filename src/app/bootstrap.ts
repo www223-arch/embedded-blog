@@ -32,9 +32,7 @@ export function bootstrap(): void {
 
   app.innerHTML = shellTemplate();
   bindNav();
-  bindNavControls();
   bindQuickDock();
-  bindThemeToggle();
   bindSearch();
   initTheme();
   renderRoute(getCurrentRoute());
@@ -47,34 +45,41 @@ function shellTemplate(): string {
     <header class="site-header">
       <a class="brand" href="#home">Embedded.dev</a>
       <nav id="nav"></nav>
-      <div class="nav-right">
-        <div class="nav-controls-container">
-          <button class="nav-controls-btn" id="navControlsBtn" title="打开控制">
-            <span class="nav-controls-icon">...</span>
-          </button>
-          <div class="nav-controls-panel" id="navControlsPanel">
-            <div class="search-box">
-              <input type="text" id="searchInput" placeholder="搜索..." />
-              <button class="search-btn" id="searchBtn">Go</button>
-            </div>
-            <button class="theme-toggle" id="themeToggle" title="切换主题">
-              <span class="theme-icon sun">L</span>
-              <span class="theme-icon moon">D</span>
-            </button>
-          </div>
-        </div>
-        <button class="back-btn nav-back-btn" id="navBackBtn" title="返回" style="display: none;">
-          <span class="back-icon">&lt;</span>
-          <span>返回</span>
-        </button>
-      </div>
     </header>
     <div id="sidebarContainer"></div>
     <main id="view"></main>
     <div class="quick-dock" id="quickDock" aria-label="Quick actions">
-      <button type="button" data-quick-action="search" aria-label="Focus search" title="Search">/</button>
-      <button type="button" data-quick-action="top" aria-label="Back to top" title="Back to top">^</button>
-      <button type="button" data-quick-action="random" aria-label="Open random item" title="Random">*</button>
+      <button class="quick-dock-trigger" type="button" data-quick-action="toggle" aria-label="展开快捷控制" title="快捷控制">
+        <span class="quick-icon icon-menu" aria-hidden="true"></span>
+      </button>
+      <div class="quick-dock-actions" aria-label="快捷操作">
+        <button class="quick-action" type="button" data-quick-action="search" aria-label="搜索" title="搜索">
+          <span class="quick-icon icon-search" aria-hidden="true"></span>
+        </button>
+        <button class="quick-action" type="button" data-quick-action="theme" id="themeToggle" aria-label="切换主题" title="切换主题">
+          <span class="quick-icon icon-theme" aria-hidden="true"></span>
+        </button>
+        <button class="quick-action quick-back" type="button" data-quick-action="back" id="quickBackBtn" aria-label="返回上级" title="返回上级" style="display: none;">
+          <span class="quick-icon icon-back" aria-hidden="true"></span>
+        </button>
+        <button class="quick-action" type="button" data-quick-action="top" aria-label="回到顶部" title="回到顶部">
+          <span class="quick-icon icon-top" aria-hidden="true"></span>
+        </button>
+        <button class="quick-action" type="button" data-quick-action="random" aria-label="随机打开" title="随机打开">
+          <span class="quick-icon icon-random" aria-hidden="true"></span>
+        </button>
+        <button class="quick-action" type="button" data-quick-action="play" aria-label="趣味实验室" title="趣味实验室">
+          <span class="quick-icon icon-play" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="quick-search-panel" id="quickSearchPanel">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="搜索文档 / 项目 / 生活" />
+          <button class="search-btn" id="searchBtn" aria-label="执行搜索">
+            <span class="quick-icon icon-enter" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -110,24 +115,24 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
   const view = document.getElementById("view");
   const sidebarContainer = document.getElementById("sidebarContainer");
   const header = document.querySelector<HTMLElement>(".site-header");
-  const navBackBtn = document.getElementById("navBackBtn");
+  const quickBackBtn = document.getElementById("quickBackBtn");
   if (!view || !sidebarContainer) return;
 
   if (route === "project-detail" && params.id) {
     renderProjectDetail(params.id);
-    if (navBackBtn) navBackBtn.style.display = "inline-flex";
+    if (quickBackBtn) quickBackBtn.style.display = "inline-flex";
   } else if (route === "life-detail" && params.id) {
     renderLifeDetail(params.id);
-    if (navBackBtn) navBackBtn.style.display = "inline-flex";
+    if (quickBackBtn) quickBackBtn.style.display = "inline-flex";
   } else if (route === "doc-detail" && params.id) {
     renderDocDetail(params.id);
-    if (navBackBtn) navBackBtn.style.display = "inline-flex";
+    if (quickBackBtn) quickBackBtn.style.display = "inline-flex";
   } else {
     sidebarContainer.innerHTML = "";
     const current = getModule(route);
     if (!current) return;
 
-    if (navBackBtn) navBackBtn.style.display = "none";
+    if (quickBackBtn) quickBackBtn.style.display = "none";
     view.className = route;
     if (header) {
       header.classList.toggle("liquid-nav", route !== "home" && route !== "playground");
@@ -351,35 +356,6 @@ function bindMagnetic(button: Element): void {
   });
 }
 
-function bindNavControls(): void {
-  const navControlsBtn = document.getElementById("navControlsBtn");
-  const navControlsPanel = document.getElementById("navControlsPanel");
-  const navBackBtn = document.getElementById("navBackBtn");
-  if (!navControlsBtn || !navControlsPanel) return;
-
-  navControlsBtn.addEventListener("click", () => {
-    navControlsBtn.classList.toggle("active");
-    navControlsPanel.classList.toggle("active");
-  });
-
-  document.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    if (!target.closest("#navControlsBtn") && !target.closest("#navControlsPanel") && !target.closest("#quickDock")) {
-      navControlsBtn.classList.remove("active");
-      navControlsPanel.classList.remove("active");
-    }
-  });
-
-  navBackBtn?.addEventListener("click", () => {
-    const current = getCurrentRoute();
-    if (current.route === "project-detail") navigate("projects");
-    if (current.route === "life-detail") navigate("life");
-    if (current.route === "doc-detail") navigate("docs");
-    navControlsBtn.classList.remove("active");
-    navControlsPanel.classList.remove("active");
-  });
-}
-
 function bindQuickDock(): void {
   const dock = document.getElementById("quickDock");
   if (!dock) return;
@@ -387,26 +363,67 @@ function bindQuickDock(): void {
   dock.querySelectorAll<HTMLButtonElement>("button[data-quick-action]").forEach((button) => {
     button.addEventListener("click", () => {
       const action = button.dataset.quickAction;
+      if (action === "toggle") {
+        const willOpen = !dock.classList.contains("open");
+        dock.classList.toggle("open", willOpen);
+        if (!willOpen) dock.classList.remove("search-open");
+      }
       if (action === "search") openSearchPanel();
+      if (action === "theme") toggleTheme();
+      if (action === "back") {
+        goBackFromDetail();
+        closeQuickDock();
+      }
       if (action === "top") window.scrollTo({ top: 0, behavior: "smooth" });
-      if (action === "random") openRandomContent();
+      if (action === "random") {
+        openRandomContent();
+        closeQuickDock();
+      }
+      if (action === "play") {
+        const current = getCurrentRoute();
+        navigate(current.route === "playground" ? "home" : "playground");
+        closeQuickDock();
+      }
     });
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest("#quickDock")) closeQuickDock();
   });
 }
 
 function updateQuickDock(route: RouteKey): void {
   const dock = document.getElementById("quickDock");
   if (!dock) return;
-  dock.classList.toggle("visible", route !== "home" && route !== "playground");
+  dock.classList.toggle("visible", route !== "home");
+  dock.classList.toggle("detail-route", String(route).endsWith("-detail"));
+  if (route === "home") closeQuickDock();
 }
 
 function openSearchPanel(): void {
-  const navControlsBtn = document.getElementById("navControlsBtn");
-  const navControlsPanel = document.getElementById("navControlsPanel");
+  const dock = document.getElementById("quickDock");
   const searchInput = document.getElementById("searchInput") as HTMLInputElement | null;
-  navControlsBtn?.classList.add("active");
-  navControlsPanel?.classList.add("active");
-  searchInput?.focus();
+  dock?.classList.add("visible", "open", "search-open");
+  window.setTimeout(() => searchInput?.focus(), 80);
+}
+
+function closeQuickDock(): void {
+  const dock = document.getElementById("quickDock");
+  dock?.classList.remove("open", "search-open");
+  hideSearchResults();
+}
+
+function toggleTheme(): void {
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  setTheme(currentTheme === "dark" ? "light" : "dark");
+}
+
+function goBackFromDetail(): void {
+  const current = getCurrentRoute();
+  if (current.route === "project-detail") navigate("projects");
+  if (current.route === "life-detail") navigate("life");
+  if (current.route === "doc-detail") navigate("docs");
 }
 
 function openRandomContent(): void {
@@ -417,13 +434,6 @@ function openRandomContent(): void {
   ];
   const item = pool[Math.floor(Math.random() * pool.length)];
   if (item) navigate(item.route, { id: item.id });
-}
-
-function bindThemeToggle(): void {
-  document.getElementById("themeToggle")?.addEventListener("click", () => {
-    const currentTheme = document.documentElement.getAttribute("data-theme");
-    setTheme(currentTheme === "dark" ? "light" : "dark");
-  });
 }
 
 function setTheme(theme: string): void {
@@ -447,14 +457,13 @@ function initTheme(): void {
 function bindSearch(): void {
   const searchInput = document.getElementById("searchInput") as HTMLInputElement | null;
   const searchBtn = document.getElementById("searchBtn");
-  const navControlsPanel = document.getElementById("navControlsPanel");
-  if (!searchInput || !navControlsPanel) return;
+  const quickSearchPanel = document.getElementById("quickSearchPanel");
+  if (!searchInput || !quickSearchPanel) return;
 
   const searchResults = document.createElement("div");
   searchResults.className = "search-results";
   searchResults.id = "searchResults";
-  navControlsPanel.style.position = "relative";
-  navControlsPanel.appendChild(searchResults);
+  quickSearchPanel.appendChild(searchResults);
 
   let debounceTimer: ReturnType<typeof setTimeout>;
   searchInput.addEventListener("input", () => {
@@ -518,6 +527,7 @@ function displaySearchResults(results: Array<{ title: string; type: string; rout
       const id = item.dataset.id;
       navigate(route, id ? { id } : undefined);
       hideSearchResults();
+      closeQuickDock();
     });
   });
   searchResults.classList.add("active");
