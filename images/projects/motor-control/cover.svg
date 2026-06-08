@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">STM32 PID Motor Controller placeholder cover</title>
+  <desc id="desc">A clean technical placeholder for the motor controller project.</desc>
+  <rect width="1200" height="720" fill="#101820"/>
+  <rect x="110" y="120" width="118" height="420" rx="24" fill="#202c37" stroke="#3c5366" stroke-width="4"/>
+  <circle cx="228" cy="210" r="42" fill="#0f141a" stroke="#6fd3ff" stroke-width="5"/>
+  <circle cx="228" cy="210" r="15" fill="#6fd3ff"/>
+  <rect x="400" y="176" width="320" height="260" rx="22" fill="#17232d" stroke="#5b7488" stroke-width="4"/>
+  <rect x="454" y="226" width="210" height="42" rx="10" fill="#223746"/>
+  <rect x="454" y="300" width="160" height="26" rx="8" fill="#2f5368"/>
+  <rect x="454" y="350" width="230" height="26" rx="8" fill="#2f5368"/>
+  <path d="M230 210 C310 210 320 306 400 306" fill="none" stroke="#6fd3ff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M720 306 C812 306 842 436 942 436" fill="none" stroke="#ffbf69" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="942" cy="436" r="96" fill="#1f2d36" stroke="#ffbf69" stroke-width="6"/>
+  <circle cx="942" cy="436" r="52" fill="#101820" stroke="#ffdf9f" stroke-width="5"/>
+  <path d="M942 340 L942 532 M846 436 L1038 436 M874 368 L1010 504 M1010 368 L874 504" stroke="#ffbf69" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+  <text x="110" y="625" fill="#f7fbff" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="700">STM32 PID Motor Controller</text>
+  <text x="110" y="668" fill="#9fb7c7" font-family="Segoe UI, Arial, sans-serif" font-size="24">placeholder cover - replace with real project imagery</text>
+</svg>
