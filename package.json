@@ -20,7 +20,7 @@
     "docs:build": "vitepress build docs-vitepress",
     "docs:preview": "vitepress preview docs-vitepress"
   },
-  "homepage": "https://www223.gitee.io/embedded-blog/",
+  "homepage": "https://www223-arch.github.io/embedded-blog/",
   "devDependencies": {
     "gh-pages": "^6.3.0",
     "typescript": "~5.9.3",

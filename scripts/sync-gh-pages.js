@@ -6,11 +6,15 @@ const syncAll = process.argv.includes("--all");
 
 if (syncAll) {
   assertCleanWorktree();
-  run("git", ["push", "origin", "HEAD"]);
 }
 
 run("npm", ["run", "check:content"]);
 run("npm", ["run", "build"]);
+
+if (syncAll) {
+  run("git", ["push", "origin", "HEAD"]);
+}
+
 run("npx", ["gh-pages", "-d", "dist", "-m", "sync gh-pages"]);
 
 function assertCleanWorktree() {
@@ -30,17 +34,23 @@ function assertCleanWorktree() {
 }
 
 function run(command, args) {
-  const result = spawnSync(resolveCommand(command), args, {
-    stdio: "inherit",
-    shell: false
-  });
+  const result =
+    process.platform === "win32"
+      ? spawnSync([command, ...args.map(quoteShellArg)].join(" "), {
+          stdio: "inherit",
+          shell: true
+        })
+      : spawnSync(command, args, {
+          stdio: "inherit",
+          shell: false
+        });
   if (result.status !== 0) {
+    if (result.error) process.stderr.write(`${result.error.message}\n`);
     process.exit(result.status ?? 1);
   }
 }
 
-function resolveCommand(command) {
-  if (process.platform !== "win32") return command;
-  if (command === "npm" || command === "npx") return `${command}.cmd`;
-  return command;
+function quoteShellArg(value) {
+  if (!/[^\w:./-]/.test(value)) return value;
+  return `"${value.replace(/"/g, '\\"')}"`;
 }
