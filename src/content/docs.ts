@@ -28,4 +28,5 @@ export const techDocs: TechDoc[] = loadMarkdownEntries<Frontmatter>(docModules, 
       summary: valueAsString(data.summary, ""),
       markdown: entry.markdown
     });
-  });
+  })
+  .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));

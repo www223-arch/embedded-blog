@@ -670,13 +670,104 @@
   box-shadow: 0 0 0 4px rgba(52, 199, 89, 0.12);
 }
 
+.docs-section {
+  display: grid;
+  gap: 18px;
+}
+
+.docs-page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  padding: 8px 0 4px;
+}
+
+.docs-page-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.docs-page-kicker {
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 132, 255, 0.14);
+  color: rgba(255, 255, 255, 0.78);
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.docs-page-heading h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 1.6rem + 1.5vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.docs-page-heading p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.docs-page-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.docs-page-stats span {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(10, 13, 19, 0.48);
+  color: rgba(255, 255, 255, 0.68);
+  padding: 8px 11px;
+  font-size: 0.82rem;
+}
+
+.docs-page-stats b {
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.docs-page .filter {
+  margin: 0;
+}
+
+.docs-page .filter b {
+  margin-left: 5px;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+}
+
+.docs-page .grid-two {
+  gap: 18px;
+}
+
 .docs-page .doc-card {
-  min-height: 300px;
-  grid-template-rows: auto auto 1fr auto auto;
+  min-height: 318px;
+  grid-template-rows: auto auto minmax(76px, 1fr) auto auto;
 }
 
 .docs-page .doc-card .card-summary {
   -webkit-line-clamp: 4;
+}
+
+.docs-page .doc-card .compact-meta span {
+  min-height: 26px;
 }
 
 .life-page .life-card {
@@ -712,6 +803,14 @@
   .reading-card .card-read-cue {
     opacity: 1;
     transform: none;
+  }
+
+  .docs-page-header {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-page-stats {
+    justify-content: flex-start;
   }
 
   .quick-dock {

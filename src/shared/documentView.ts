@@ -231,6 +231,18 @@ function renderBlock(block: string, toc: TocItem[]): string {
     return `<pre><code class="language-${escapeAttribute(language)}">${escapeHtml(code)}</code></pre>`;
   }
 
+  if (/^(-{3,}|\*{3,}|_{3,})$/.test(block)) {
+    return "<hr>";
+  }
+
+  if (isTableBlock(block)) {
+    return renderTable(block);
+  }
+
+  if (isBlockquote(block)) {
+    return renderBlockquote(block);
+  }
+
   const heading = block.match(/^(#{1,4})\s+(.+)$/);
   if (heading) {
     const level = Math.min(heading[1].length + 1, 4);
@@ -259,6 +271,59 @@ function renderBlock(block: string, toc: TocItem[]): string {
   }
 
   return `<p>${renderInline(block.replace(/\n/g, "<br>"))}</p>`;
+}
+
+function isTableBlock(block: string): boolean {
+  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2 || !lines[0].includes("|")) return false;
+  return isTableSeparator(lines[1]);
+}
+
+function isTableSeparator(line: string): boolean {
+  const cells = splitTableRow(line);
+  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+}
+
+function splitTableRow(row: string): string[] {
+  return row
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+function renderTable(block: string): string {
+  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+  const headers = splitTableRow(lines[0]);
+  const rows = lines.slice(2).filter((line) => line.includes("|")).map(splitTableRow);
+
+  return `
+    <div class="doc-table-wrap">
+      <table>
+        <thead>
+          <tr>${headers.map((header) => `<th>${renderInline(header)}</th>`).join("")}</tr>
+        </thead>
+        <tbody>
+          ${rows
+            .map((row) => `<tr>${headers.map((_header, index) => `<td>${renderInline(row[index] ?? "")}</td>`).join("")}</tr>`)
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function isBlockquote(block: string): boolean {
+  return block.split("\n").every((line) => /^>\s?/.test(line.trim()) || !line.trim());
+}
+
+function renderBlockquote(block: string): string {
+  const lines = block
+    .split("\n")
+    .map((line) => line.trim().replace(/^>\s?/, ""))
+    .filter(Boolean);
+  return `<blockquote>${lines.map(renderInline).join("<br>")}</blockquote>`;
 }
 
 function renderInline(value: string): string {
