@@ -226,6 +226,7 @@ app.innerHTML = `
             <span id="assetHint">图片/GIF 15MB 内，小视频 30MB 内</span>
           </div>
           <div class="asset-list" id="assetList"></div>
+          <div class="gallery-manager" id="galleryManager"></div>
         </div>
       </aside>
     </main>
@@ -360,6 +361,17 @@ function bindControls(): void {
     if (!asset) return;
     if (button.dataset.assetAction === "insert") insertAssetIntoMarkdown(asset);
     if (button.dataset.assetAction === "gallery") addAssetToGallery(asset);
+    if (button.dataset.assetAction === "cover") setAssetAsCover(asset);
+    if (button.dataset.assetAction === "delete") void deleteAsset(asset);
+  });
+
+  document.querySelector("#galleryManager")?.addEventListener("click", (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-gallery-action]");
+    const index = Number(button?.dataset.galleryIndex);
+    if (!button || !Number.isInteger(index)) return;
+    if (button.dataset.galleryAction === "up") moveGalleryItem(index, -1);
+    if (button.dataset.galleryAction === "down") moveGalleryItem(index, 1);
+    if (button.dataset.galleryAction === "remove") removeGalleryItem(index);
   });
 }
 
@@ -636,6 +648,29 @@ async function uploadAssets(files: FileList | null): Promise<void> {
   }
 }
 
+async function deleteAsset(asset: AssetItem): Promise<void> {
+  if (!state.selected) return;
+  const confirmed = window.confirm(`删除素材 ${asset.name}？\n\n如果正文里已经引用了它，请先手动移除对应 Markdown。`);
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`/api/assets/${state.selected.type}/${encodeURIComponent(state.selected.id)}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: asset.url })
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error?.message || "删除素材失败。");
+    state.assets = payload.assets;
+    detachDeletedAssetReferences(asset.url);
+    renderAssets();
+    renderPreview();
+    setSaveMessage("素材已删除。若已从封面或图集中移除，请保存内容。");
+  } catch (error) {
+    renderAssetError(error instanceof Error ? error.message : "删除素材失败。");
+  }
+}
+
 function renderEditor(): void {
   const detail = state.selected;
   const empty = document.querySelector<HTMLElement>("#editorEmpty");
@@ -781,16 +816,19 @@ function renderAssets(): void {
   if (!list || !hint) return;
   if (!state.selected) {
     list.innerHTML = `<div class="asset-empty">先选择一篇内容</div>`;
+    renderGalleryManager();
     return;
   }
 
   hint.textContent = assetHintText();
   if (!state.assets.length) {
     list.innerHTML = `<div class="asset-empty">还没有素材。上传后会出现在这里。</div>`;
+    renderGalleryManager();
     return;
   }
 
   list.innerHTML = state.assets.map(renderAssetItem).join("");
+  renderGalleryManager();
 }
 
 function renderAssetItem(asset: AssetItem): string {
@@ -798,6 +836,10 @@ function renderAssetItem(asset: AssetItem): string {
   const galleryButton =
     state.selected?.type === "projects" && isImage
       ? `<button type="button" data-asset-action="gallery" data-asset-url="${escapeAttribute(asset.url)}">加入图集</button>`
+      : "";
+  const coverButton =
+    isImage && (state.selected?.type === "projects" || state.selected?.type === "life")
+      ? `<button type="button" data-asset-action="cover" data-asset-url="${escapeAttribute(asset.url)}">设为封面</button>`
       : "";
   return `
     <article class="asset-item">
@@ -812,6 +854,8 @@ function renderAssetItem(asset: AssetItem): string {
       <div class="asset-actions">
         <button type="button" data-asset-action="insert" data-asset-url="${escapeAttribute(asset.url)}">插入正文</button>
         ${galleryButton}
+        ${coverButton}
+        <button type="button" data-asset-action="delete" data-asset-url="${escapeAttribute(asset.url)}">删除</button>
       </div>
     </article>
   `;
@@ -838,12 +882,132 @@ function addAssetToGallery(asset: AssetItem): void {
     ? state.selected.frontmatter.gallery.filter((item): item is string => typeof item === "string")
     : [];
   if (!gallery.includes(asset.url)) gallery.push(asset.url);
+  applyProjectGallery(gallery);
+  setSaveMessage("已加入项目图集，保存后写入 Markdown。");
+}
+
+function setAssetAsCover(asset: AssetItem): void {
+  if (!state.selected || asset.kind !== "images") return;
+
+  if (state.selected.type === "projects") {
+    const gallery = getProjectGallery();
+    const next = [asset.url, ...gallery.filter((item) => item !== asset.url)];
+    applyProjectGallery(next);
+    setSaveMessage("已设为项目图集首图，保存后生效。");
+    return;
+  }
+
+  if (state.selected.type === "life") {
+    state.selected.frontmatter.cover = asset.url;
+    const coverField = document.querySelector<HTMLInputElement>('[data-field-key="cover"]');
+    if (coverField) coverField.value = asset.url;
+    syncSelectedSummary();
+    markDirty();
+    renderPreview();
+    setSaveMessage("已设为分享封面，保存后生效。");
+  }
+}
+
+function renderGalleryManager(): void {
+  const manager = document.querySelector<HTMLElement>("#galleryManager");
+  if (!manager) return;
+  if (!state.selected || state.selected.type !== "projects") {
+    manager.innerHTML = "";
+    return;
+  }
+
+  const gallery = getProjectGallery();
+  if (!gallery.length) {
+    manager.innerHTML = `<section class="gallery-tools"><strong>项目图集</strong><p>还没有图集图片。可以从上方素材设为封面或加入图集。</p></section>`;
+    return;
+  }
+
+  manager.innerHTML = `
+    <section class="gallery-tools">
+      <div class="gallery-tools-heading">
+        <strong>项目图集</strong>
+        <span>${gallery.length} 张，第一张会优先作为卡片视觉</span>
+      </div>
+      <div class="gallery-list">
+        ${gallery.map((url, index) => renderGalleryItem(url, index, gallery.length)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderGalleryItem(url: string, index: number, total: number): string {
+  return `
+    <article class="gallery-item">
+      <div class="gallery-thumb"><img src="${escapeAttribute(url)}" alt="" loading="lazy" /></div>
+      <span>${escapeHtml(url)}</span>
+      <div class="gallery-actions">
+        <button type="button" data-gallery-action="up" data-gallery-index="${index}" ${index === 0 ? "disabled" : ""}>上移</button>
+        <button type="button" data-gallery-action="down" data-gallery-index="${index}" ${index === total - 1 ? "disabled" : ""}>下移</button>
+        <button type="button" data-gallery-action="remove" data-gallery-index="${index}">移除</button>
+      </div>
+    </article>
+  `;
+}
+
+function moveGalleryItem(index: number, delta: number): void {
+  const gallery = getProjectGallery();
+  const target = index + delta;
+  if (target < 0 || target >= gallery.length) return;
+  [gallery[index], gallery[target]] = [gallery[target], gallery[index]];
+  applyProjectGallery(gallery);
+  setSaveMessage("图集顺序已调整，保存后生效。");
+}
+
+function removeGalleryItem(index: number): void {
+  const gallery = getProjectGallery();
+  if (index < 0 || index >= gallery.length) return;
+  gallery.splice(index, 1);
+  applyProjectGallery(gallery);
+  setSaveMessage("已从图集移除，保存后生效。");
+}
+
+function getProjectGallery(): string[] {
+  if (!state.selected || state.selected.type !== "projects") return [];
+  return Array.isArray(state.selected.frontmatter.gallery)
+    ? state.selected.frontmatter.gallery.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function applyProjectGallery(gallery: string[]): void {
+  if (!state.selected || state.selected.type !== "projects") return;
   state.selected.frontmatter.gallery = gallery;
   const galleryField = document.querySelector<HTMLTextAreaElement>('[data-field-key="gallery"]');
   if (galleryField) galleryField.value = gallery.join("\n");
   syncSelectedSummary();
   markDirty();
-  setSaveMessage("已加入项目图集，保存后写入 Markdown。");
+  renderGalleryManager();
+  renderPreview();
+}
+
+function detachDeletedAssetReferences(assetUrl: string): void {
+  if (!state.selected) return;
+  let changed = false;
+
+  if (state.selected.type === "projects") {
+    const gallery = getProjectGallery();
+    const nextGallery = gallery.filter((item) => item !== assetUrl);
+    if (nextGallery.length !== gallery.length) {
+      applyProjectGallery(nextGallery);
+      changed = true;
+    }
+  }
+
+  if (state.selected.type === "life" && state.selected.frontmatter.cover === assetUrl) {
+    state.selected.frontmatter.cover = "";
+    const coverField = document.querySelector<HTMLInputElement>('[data-field-key="cover"]');
+    if (coverField) coverField.value = "";
+    changed = true;
+  }
+
+  if (changed) {
+    syncSelectedSummary();
+    markDirty();
+  }
 }
 
 function insertMarkdownSnippet(snippet: string): void {

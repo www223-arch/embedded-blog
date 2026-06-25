@@ -1,4 +1,4 @@
-import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ContentStoreError, assertContentId, assertContentType } from "./content-store.mjs";
 
@@ -36,6 +36,12 @@ export function createAssetStore(rootDir) {
       const safeType = assertContentType(type);
       const safeId = assertContentId(id);
       return uploadAsset(projectRoot, publicRoot, safeType, safeId, input);
+    },
+
+    async remove(type, id, input) {
+      const safeType = assertContentType(type);
+      const safeId = assertContentId(id);
+      return removeAsset(projectRoot, publicRoot, safeType, safeId, input);
     }
   };
 }
@@ -88,6 +94,25 @@ async function uploadAsset(projectRoot, publicRoot, type, id, input) {
   };
 }
 
+async function removeAsset(projectRoot, publicRoot, type, id, input) {
+  const assetUrl = valueAsString(input?.url).trim();
+  const { filePath, kind } = resolveAssetUrl(publicRoot, type, id, assetUrl);
+
+  try {
+    await unlink(filePath);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      throw new ContentStoreError("ASSET_NOT_FOUND", "没有找到要删除的素材。", 404);
+    }
+    throw error;
+  }
+
+  return {
+    removed: await toAssetFromDeletedPath(projectRoot, publicRoot, kind, filePath),
+    assets: await listAssets(projectRoot, publicRoot, type, id)
+  };
+}
+
 async function listFiles(directory) {
   let entries;
   try {
@@ -113,6 +138,16 @@ async function toAsset(projectRoot, publicRoot, kind, filePath) {
     url: `/${relativePublicPath}`,
     size: fileStat.size,
     modifiedAt: fileStat.mtime.toISOString()
+  };
+}
+
+async function toAssetFromDeletedPath(projectRoot, publicRoot, kind, filePath) {
+  const relativePublicPath = path.relative(publicRoot, filePath).replace(/\\/g, "/");
+  return {
+    kind,
+    name: path.basename(filePath),
+    path: path.relative(projectRoot, filePath).replace(/\\/g, "/"),
+    url: `/${relativePublicPath}`
   };
 }
 
@@ -149,6 +184,37 @@ function assetDirectory(publicRoot, kind, type, id) {
   const directory = path.resolve(publicRoot, config.directory, contentDirectories[type], id);
   assertInside(publicRoot, directory);
   return directory;
+}
+
+function resolveAssetUrl(publicRoot, type, id, assetUrl) {
+  if (!assetUrl.startsWith("/")) {
+    throw new ContentStoreError("INVALID_ASSET_URL", "素材路径格式不正确。", 400);
+  }
+
+  let parts;
+  try {
+    parts = assetUrl
+      .split("/")
+      .filter(Boolean)
+      .map((part) => decodeURIComponent(part));
+  } catch {
+    throw new ContentStoreError("INVALID_ASSET_URL", "素材路径格式不正确。", 400);
+  }
+
+  const [publicDirectory, typeDirectory, contentId, fileName, ...extra] = parts;
+  const kind = Object.entries(assetKinds).find(([, config]) => config.directory === publicDirectory)?.[0];
+  if (!kind || typeDirectory !== contentDirectories[type] || contentId !== id || !fileName || extra.length) {
+    throw new ContentStoreError("INVALID_ASSET_URL", "素材必须位于当前内容的素材目录内。", 400);
+  }
+
+  if (fileName.startsWith(".") || kindForExtension(path.extname(fileName).toLowerCase()) !== kind) {
+    throw new ContentStoreError("INVALID_ASSET_URL", "素材路径格式不正确。", 400);
+  }
+
+  const directory = assetDirectory(publicRoot, kind, type, id);
+  const filePath = path.resolve(directory, fileName);
+  assertInside(directory, filePath);
+  return { filePath, kind };
 }
 
 function sanitizeBaseName(value) {

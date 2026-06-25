@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { ContentStoreError } from "../tools/content-studio/server/content-store.mjs";
@@ -63,6 +63,30 @@ test("asset store rejects unsupported extensions", async () => {
           dataBase64: Buffer.from("nope").toString("base64")
         }),
       (error) => error instanceof ContentStoreError && error.code === "UNSUPPORTED_ASSET_TYPE" && error.status === 400
+    );
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test("asset store removes only assets that belong to the selected content", async () => {
+  const tempRoot = await createTempRoot();
+  try {
+    const store = createAssetStore(tempRoot);
+    const uploaded = await store.upload("projects", "asset-check", {
+      fileName: "Cover.png",
+      dataBase64: Buffer.from("fake-cover").toString("base64")
+    });
+    const filePath = path.join(tempRoot, "public/images/projects/asset-check/cover.png");
+
+    const removed = await store.remove("projects", "asset-check", { url: uploaded.asset.url });
+    assert.equal(removed.removed.url, "/images/projects/asset-check/cover.png");
+    assert.deepEqual(removed.assets, []);
+    await assert.rejects(() => access(filePath), { code: "ENOENT" });
+
+    await assert.rejects(
+      () => store.remove("projects", "asset-check", { url: "/images/projects/other-project/cover.png" }),
+      (error) => error instanceof ContentStoreError && error.code === "INVALID_ASSET_URL" && error.status === 400
     );
   } finally {
     await rm(tempRoot, { recursive: true, force: true });

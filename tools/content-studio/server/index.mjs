@@ -82,6 +82,13 @@ async function handleApi(request, response) {
     return;
   }
 
+  if (assetMatch && request.method === "DELETE") {
+    const payload = await readJsonBody(request);
+    const result = await assetStore.remove(decodeURIComponent(assetMatch[1]), decodeURIComponent(assetMatch[2]), payload);
+    sendJson(response, 200, result);
+    return;
+  }
+
   const match = url.pathname.match(/^\/api\/content\/([^/]+)\/([^/]+)$/);
   if (match && request.method === "GET") {
     const item = await store.get(decodeURIComponent(match[1]), decodeURIComponent(match[2]));
