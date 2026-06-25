@@ -8,11 +8,12 @@ tags:
   - Markdown
   - Knowledge Base
 level: beginner
-createdAt: '2026-06-08'
-updatedAt: '2026-06-08'
+createdAt: 2026-06-08
+updatedAt: 2026-06-08
 readingTime: 7 min
 views: 0
 summary: 记录这个个人站的内容维护方式：如何新增文档、项目和生活笔记，以及如何保证网页风格统一、内容可持续沉淀。
+status: published
 ---
 
 # 内容系统与维护工作流
@@ -96,6 +97,9 @@ docs-vitepress/life
 ```markdown
 ![项目截图](/images/projects/motor-control/cover.svg)
 ```
+
+
+![222 bode](/images/docs/content-workflow/222-bode.png)
 
 构建时会自动适配 `/embedded-blog/` 的线上路径。不要在 Markdown 里手动写完整 GitHub Pages 地址。
 

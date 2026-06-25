@@ -131,5 +131,19 @@ export function mountScrollEffect(): () => void {
   // ????????
   return () => {
     window.removeEventListener('scroll', handleScroll);
+    homeBackground.style.transform = "";
+    homeBackground.style.filter = "";
+    homeForeground.style.transform = "";
+    heroTextElements.forEach((element) => {
+      const node = element as HTMLElement;
+      node.style.transform = "";
+      node.style.opacity = "";
+      node.style.display = "";
+    });
+    if (rocketContainer) {
+      rocketContainer.classList.remove("phase-jet", "phase-launch");
+      rocketContainer.style.transform = "";
+      rocketContainer.style.opacity = "";
+    }
   };
 }

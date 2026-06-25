@@ -1,4 +1,5 @@
 import type { RouteKey } from "../app/types";
+import { renderMarkdown, type TocItem } from "../content-core/markdown.ts";
 
 export type DocumentFile = {
   id: string;
@@ -38,13 +39,6 @@ export type DocumentShellOptions = {
   contentClass?: string;
 };
 
-type TocItem = {
-  id: string;
-  text: string;
-  level: number;
-};
-
-const slugCounts = new Map<string, number>();
 let documentShellCleanup: Array<() => void> = [];
 
 export function renderDocumentShell(options: DocumentShellOptions): string {
@@ -111,6 +105,7 @@ export function bindDocumentShell(): void {
   animateDocumentShell();
   bindReadingProgress();
   bindImagePreview();
+  bindCodeCopy();
 
   document.querySelectorAll<HTMLElement>(".doc-file-link").forEach((link) => {
     link.addEventListener("click", () => {
@@ -178,6 +173,58 @@ function bindImagePreview(): void {
   });
 }
 
+function bindCodeCopy(): void {
+  document.querySelectorAll<HTMLButtonElement>(".doc-code-copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const codeElement = button.closest(".doc-code-block")?.querySelector("code");
+      const code = codeElement?.textContent;
+      if (!codeElement || !code) return;
+
+      try {
+        const copied = await copyText(code);
+        if (!copied) selectCode(codeElement);
+        const originalLabel = button.textContent;
+        button.textContent = copied ? "已复制" : "已选中";
+        window.setTimeout(() => {
+          button.textContent = originalLabel;
+        }, 1400);
+      } catch {
+        button.textContent = "复制失败";
+      }
+    });
+  });
+}
+
+async function copyText(value: string): Promise<boolean> {
+  const field = document.createElement("textarea");
+  field.value = value;
+  field.setAttribute("readonly", "");
+  field.style.position = "fixed";
+  field.style.opacity = "0";
+  document.body.appendChild(field);
+  field.select();
+  const copied = document.execCommand("copy");
+  field.remove();
+  if (copied) return true;
+
+  if (!navigator.clipboard?.writeText) return false;
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function selectCode(code: Element): void {
+  const selection = window.getSelection();
+  if (!selection) return;
+  const range = document.createRange();
+  range.selectNodeContents(code);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 function animateDocumentShell(): void {
   const items = document.querySelectorAll<HTMLElement>(".doc-rail, .doc-paper");
   items.forEach((item, index) => {
@@ -213,149 +260,7 @@ function cleanupDocumentShell(): void {
 }
 
 export function renderMarkdownDocument(markdown: string): { html: string; toc: TocItem[] } {
-  slugCounts.clear();
-  const toc: TocItem[] = [];
-  const body = markdown.replace(/\r\n/g, "\n").replace(/^---\n[\s\S]*?\n---\n?/, "");
-  const blocks = body.split(/\n{2,}/);
-  const html = blocks.map((block) => renderBlock(block.trim(), toc)).filter(Boolean).join("\n");
-  return { html, toc };
-}
-
-function renderBlock(block: string, toc: TocItem[]): string {
-  if (!block) return "";
-
-  if (block.startsWith("```")) {
-    const lines = block.split("\n");
-    const language = lines[0].replace(/`/g, "").trim();
-    const code = lines.slice(1, lines.at(-1)?.startsWith("```") ? -1 : undefined).join("\n");
-    return `<pre><code class="language-${escapeAttribute(language)}">${escapeHtml(code)}</code></pre>`;
-  }
-
-  if (/^(-{3,}|\*{3,}|_{3,})$/.test(block)) {
-    return "<hr>";
-  }
-
-  if (isTableBlock(block)) {
-    return renderTable(block);
-  }
-
-  if (isBlockquote(block)) {
-    return renderBlockquote(block);
-  }
-
-  const heading = block.match(/^(#{1,4})\s+(.+)$/);
-  if (heading) {
-    const level = Math.min(heading[1].length + 1, 4);
-    const text = stripInlineMarkdown(heading[2]);
-    const id = createSlug(text);
-    if (level >= 2) toc.push({ id, text, level });
-    return `<h${level} id="${id}">${renderInline(heading[2])}</h${level}>`;
-  }
-
-  if (/^[-*]\s+/m.test(block)) {
-    const items = block
-      .split("\n")
-      .filter((line) => /^[-*]\s+/.test(line))
-      .map((line) => `<li>${renderInline(line.replace(/^[-*]\s+/, ""))}</li>`)
-      .join("");
-    return `<ul>${items}</ul>`;
-  }
-
-  if (/^\d+\.\s+/m.test(block)) {
-    const items = block
-      .split("\n")
-      .filter((line) => /^\d+\.\s+/.test(line))
-      .map((line) => `<li>${renderInline(line.replace(/^\d+\.\s+/, ""))}</li>`)
-      .join("");
-    return `<ol>${items}</ol>`;
-  }
-
-  return `<p>${renderInline(block.replace(/\n/g, "<br>"))}</p>`;
-}
-
-function isTableBlock(block: string): boolean {
-  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-  if (lines.length < 2 || !lines[0].includes("|")) return false;
-  return isTableSeparator(lines[1]);
-}
-
-function isTableSeparator(line: string): boolean {
-  const cells = splitTableRow(line);
-  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
-}
-
-function splitTableRow(row: string): string[] {
-  return row
-    .trim()
-    .replace(/^\|/, "")
-    .replace(/\|$/, "")
-    .split("|")
-    .map((cell) => cell.trim());
-}
-
-function renderTable(block: string): string {
-  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-  const headers = splitTableRow(lines[0]);
-  const rows = lines.slice(2).filter((line) => line.includes("|")).map(splitTableRow);
-
-  return `
-    <div class="doc-table-wrap">
-      <table>
-        <thead>
-          <tr>${headers.map((header) => `<th>${renderInline(header)}</th>`).join("")}</tr>
-        </thead>
-        <tbody>
-          ${rows
-            .map((row) => `<tr>${headers.map((_header, index) => `<td>${renderInline(row[index] ?? "")}</td>`).join("")}</tr>`)
-            .join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function isBlockquote(block: string): boolean {
-  return block.split("\n").every((line) => /^>\s?/.test(line.trim()) || !line.trim());
-}
-
-function renderBlockquote(block: string): string {
-  const lines = block
-    .split("\n")
-    .map((line) => line.trim().replace(/^>\s?/, ""))
-    .filter(Boolean);
-  return `<blockquote>${lines.map(renderInline).join("<br>")}</blockquote>`;
-}
-
-function renderInline(value: string): string {
-  return escapeHtml(value)
-    .replace(
-      /!\[([^\]]*)\]\(([^)]+)\)/g,
-      (_match, alt: string, src: string) => `<img src="${escapeAttribute(resolveAssetPath(src))}" alt="${alt}" loading="lazy">`
-    )
-    .replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      (_match, label: string, href: string) =>
-        `<a href="${escapeAttribute(resolveAssetPath(href))}" target="_blank" rel="noreferrer">${label}</a>`
-    )
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
-}
-
-function stripInlineMarkdown(value: string): string {
-  return value.replace(/[`*_]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1");
-}
-
-function createSlug(text: string): string {
-  const base = text
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\u4e00-\u9fa5-]/g, "")
-    .replace(/^-+|-+$/g, "") || "section";
-  const count = slugCounts.get(base) ?? 0;
-  slugCounts.set(base, count + 1);
-  return count ? `${base}-${count + 1}` : base;
+  return renderMarkdown(markdown, { resolveAssetPath });
 }
 
 function groupFiles(files: DocumentFile[]): Array<{ label: string; items: DocumentFile[] }> {

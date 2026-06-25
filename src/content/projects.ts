@@ -1,5 +1,13 @@
 import { projectSchema, type ProjectItem } from "./schema";
-import { idFromPath, loadMarkdownEntries, valueAsLinks, valueAsString, valueAsStringArray } from "./frontmatter";
+import {
+  idFromPath,
+  loadMarkdownEntries,
+  valueAsContentStatus,
+  valueAsLinks,
+  valueAsProjectStage,
+  valueAsString,
+  valueAsStringArray
+} from "./frontmatter";
 
 const projectModules = import.meta.glob<string>("../../docs-vitepress/projects/**/*.md", {
   eager: true,
@@ -19,6 +27,8 @@ export const projectItems: ProjectItem[] = loadMarkdownEntries(projectModules)
       highlights: valueAsStringArray(data.highlights),
       gallery: valueAsStringArray(data.gallery),
       links: valueAsLinks(data.links),
+      status: valueAsContentStatus(data.status),
+      projectStage: valueAsProjectStage(data.projectStage),
       markdown: entry.markdown
     });
   });
