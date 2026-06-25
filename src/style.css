@@ -324,6 +324,22 @@ main {
   margin-top: -66px;
   padding-top: 66px;
   box-sizing: content-box;
+  --hero-pointer-x: 50%;
+  --hero-pointer-y: 44%;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at var(--hero-pointer-x) var(--hero-pointer-y), rgba(0, 212, 255, 0.16), rgba(0, 113, 227, 0.06) 22%, transparent 46%),
+    radial-gradient(circle at calc(var(--hero-pointer-x) + 12%) calc(var(--hero-pointer-y) + 18%), rgba(255, 159, 10, 0.09), transparent 34%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+  transition: opacity 0.35s ease;
 }
 
 .hero-mask {

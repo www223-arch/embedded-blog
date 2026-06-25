@@ -23,6 +23,7 @@ export function mountHomeParticles(): () => void {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const particles = createParticles(28);
   const streaks = createStreaks(36);
+  const hero = canvas.closest<HTMLElement>(".hero");
 
   let disposed = false;
   let frameId = 0;
@@ -41,11 +42,15 @@ export function mountHomeParticles(): () => void {
     const rect = canvas.getBoundingClientRect();
     mouseX = event.clientX - rect.left;
     mouseY = event.clientY - rect.top;
+    hero?.style.setProperty("--hero-pointer-x", `${(mouseX / Math.max(rect.width, 1)) * 100}%`);
+    hero?.style.setProperty("--hero-pointer-y", `${(mouseY / Math.max(rect.height, 1)) * 100}%`);
   };
 
   const handleMouseLeave = () => {
     mouseX = -1000;
     mouseY = -1000;
+    hero?.style.removeProperty("--hero-pointer-x");
+    hero?.style.removeProperty("--hero-pointer-y");
   };
 
   const handleScroll = () => {
@@ -80,6 +85,8 @@ export function mountHomeParticles(): () => void {
     canvas.removeEventListener("mouseleave", handleMouseLeave);
     window.removeEventListener("resize", resize);
     window.removeEventListener("scroll", handleScroll);
+    hero?.style.removeProperty("--hero-pointer-x");
+    hero?.style.removeProperty("--hero-pointer-y");
   };
 }
 
