@@ -1,4 +1,5 @@
-import { idFromPath, loadMarkdownEntries, valueAsString } from "./frontmatter";
+import { idFromPath, loadMarkdownEntries, valueAsContentStatus, valueAsString } from "./frontmatter";
+import type { ContentStatus } from "../content-core/model.ts";
 
 export type LifePost = {
   id: string;
@@ -7,6 +8,7 @@ export type LifePost = {
   tag: string;
   summary: string;
   cover: string;
+  status: ContentStatus;
   markdown?: string;
 };
 
@@ -27,6 +29,7 @@ export const lifePosts: LifePost[] = loadMarkdownEntries(lifeModules)
       tag: valueAsString(data.tag, "Life"),
       summary: valueAsString(data.summary, ""),
       cover: valueAsString(data.cover, ""),
+      status: valueAsContentStatus(data.status),
       markdown: entry.markdown
     };
   });

@@ -5,6 +5,11 @@ import { navigateFromCard } from "../../shared/routeTransition";
 
 export function renderDocs(): string {
   const categories = [...new Set(techDocs.map((d) => d.category))];
+  const categoryCounts = categories.map((category) => ({
+    category,
+    count: techDocs.filter((doc) => doc.category === category).length
+  }));
+  const latestUpdated = techDocs[0]?.updatedAt || "-";
   const cards = techDocs
     .map(
       (doc, index) => `
@@ -16,11 +21,11 @@ export function renderDocs(): string {
         </div>
         <div class="card-title-row">
           <h3>${doc.title}</h3>
-          <span class="card-read-cue">Read -&gt;</span>
+          <span class="card-read-cue">预览 -&gt;</span>
         </div>
         <p class="card-summary">${doc.summary}</p>
         <div class="doc-meta compact-meta">
-          <span>Updated ${doc.updatedAt}</span>
+          <span>更新 ${doc.updatedAt}</span>
           <span>${doc.readingTime}</span>
           <span>${doc.views} views</span>
         </div>
@@ -37,11 +42,23 @@ export function renderDocs(): string {
       <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${base}jishuwendangbaitian.jpg"></div>
       <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${base}jishuwendheitian.jpg"></div>
     </div>
-    <section class="container section">
-    <div class="filter reveal" id="docFilter">
-      <button class="active" data-filter="all">全部</button>
-      ${categories.map((c) => `<button data-filter="${c}">${c}</button>`).join("")}
-    </div>
+    <section class="container section docs-section">
+      <div class="docs-page-header">
+        <div class="docs-page-heading">
+          <span class="docs-page-kicker">Knowledge Base</span>
+          <h1>技术知识库</h1>
+          <p>沉淀架构、内容系统、项目复盘和后续可复用的工程经验。</p>
+        </div>
+        <div class="docs-page-stats" aria-label="Knowledge base stats">
+          <span><b>${techDocs.length}</b> docs</span>
+          <span><b>${categories.length}</b> topics</span>
+          <span><b>${latestUpdated}</b> latest</span>
+        </div>
+      </div>
+      <div class="filter reveal" id="docFilter">
+        <button class="active" data-filter="all">全部 <b>${techDocs.length}</b></button>
+        ${categoryCounts.map((item) => `<button data-filter="${item.category}">${item.category} <b>${item.count}</b></button>`).join("")}
+      </div>
       <div class="grid-two" id="docGrid">${cards}</div>
     </section>
   </div>`;
@@ -75,7 +92,7 @@ export function bindDocFilter(): void {
       animateSwapOutIn(grid, () => {
         document.querySelectorAll<HTMLElement>(".doc-card").forEach((card) => {
           const match = filter === "all" || card.dataset.category === filter;
-          card.style.display = match ? "block" : "none";
+          card.style.display = match ? "" : "none";
         });
       });
     });

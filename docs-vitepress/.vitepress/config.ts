@@ -4,6 +4,9 @@ export default defineConfig({
   title: 'Embedded Engineer Blog',
   description: '嵌入式工程师的个人博客与技术文档',
   base: '/',
+  vite: {
+    publicDir: '../public'
+  },
   
   themeConfig: {
     nav: [
@@ -37,7 +40,8 @@ export default defineConfig({
         {
           text: '技术文档',
           items: [
-            { text: '架构概述', link: '/docs/architecture-overview' }
+            { text: '架构概述', link: '/docs/architecture-overview' },
+            { text: '内容系统与维护工作流', link: '/docs/content-workflow' }
           ]
         }
       ]

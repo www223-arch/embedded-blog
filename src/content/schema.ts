@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const contentStatusSchema = z.enum(["draft", "published", "archived"]);
+export const projectStageSchema = z.enum(["concept", "building", "completed", "maintained", "paused"]);
+
 export const docSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -11,6 +14,7 @@ export const docSchema = z.object({
   readingTime: z.string(),
   views: z.number(),
   summary: z.string(),
+  status: contentStatusSchema,
   markdown: z.string()
 });
 
@@ -27,6 +31,8 @@ export const projectSchema = z.object({
       href: z.string()
     })
   ),
+  status: contentStatusSchema,
+  projectStage: projectStageSchema,
   markdown: z.string().optional()
 });
 

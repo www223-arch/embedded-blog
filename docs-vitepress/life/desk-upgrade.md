@@ -5,6 +5,7 @@ date: '2026-02-27'
 tag: Life
 summary: Reorganized the workstation, optimized the layout of soldering station, oscilloscope, and power supply - work efficiency improved significantly!
 cover: ''
+status: published
 ---
 
 # Workstation Upgrade Log

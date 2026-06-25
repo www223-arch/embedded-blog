@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "studio": "node --experimental-strip-types tools/content-studio/server/index.mjs",
     "build": "tsc && vite build",
+    "typecheck:studio": "tsc -p tools/content-studio/tsconfig.json",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
     "sync:gh-pages": "node scripts/sync-gh-pages.js",
@@ -15,20 +17,26 @@
     "new:project": "node scripts/add-card.js projects",
     "new:life": "node scripts/add-card.js life",
     "check:content": "node scripts/check-content.js",
+    "test:content-core": "node --experimental-strip-types --test tests/content-core.test.ts tests/content-studio-store.test.mjs tests/content-studio-assets.test.mjs",
     "generate-content": "python scripts/generate_content.py",
     "docs:dev": "vitepress dev docs-vitepress",
     "docs:build": "vitepress build docs-vitepress",
     "docs:preview": "vitepress preview docs-vitepress"
   },
-  "homepage": "https://www223.gitee.io/embedded-blog/",
+  "homepage": "https://www223-arch.github.io/embedded-blog/",
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^25.9.3",
     "gh-pages": "^6.3.0",
     "typescript": "~5.9.3",
-    "vite": "^8.0.1",
+    "vite": "^8.0.16",
     "vitepress": "^1.6.4"
   },
   "dependencies": {
     "gsap": "^3.14.2",
+    "lucide": "^1.17.0",
+    "markdown-it": "^14.2.0",
+    "yaml": "^2.9.0",
     "zod": "^4.3.6"
   }
 }
