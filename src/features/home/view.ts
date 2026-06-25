@@ -7,7 +7,6 @@ export function renderHome(): string {
     <div class="home-foreground">
       <section class="hero reveal">
         <div class="hero-mask"></div>
-        <div id="spaceScene" class="space-scene" aria-hidden="true"></div>
         <canvas id="heroParticles" class="hero-particles" aria-hidden="true"></canvas>
         <div class="rocket-container">
           <div class="rocket">

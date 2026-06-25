@@ -337,7 +337,7 @@ function registerDefaults(): void {
     title: "首页",
     visibleInNav: false,
     render: renderHome,
-    afterMount: async () => {
+    afterMount: () => {
       void runTypewriter();
       const cleanups = [
         mountHomeParticles(),
@@ -345,8 +345,6 @@ function registerDefaults(): void {
       ];
       bindStageNav();
       mountPet();
-      const { mountHomeSpaceScene } = await import("../features/home/spaceScene");
-      cleanups.push(mountHomeSpaceScene());
       return cleanups;
     }
   });

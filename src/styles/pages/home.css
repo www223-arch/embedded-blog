@@ -54,34 +54,6 @@
   z-index: 1;
 }
 
-.space-scene {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: auto;
-  opacity: 0;
-  transition: opacity 0.8s ease;
-}
-
-.space-scene.ready {
-  opacity: 1;
-}
-
-.space-scene-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.space-scene.ready + .hero-particles {
-  opacity: 0.42;
-  mix-blend-mode: screen;
-}
-
-.rocket-container--space-ready {
-  visibility: hidden;
-}
-
 .hero .container {
   position: relative;
   z-index: 2;
