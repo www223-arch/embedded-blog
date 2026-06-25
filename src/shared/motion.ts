@@ -8,7 +8,10 @@ export const motionTokens = {
 };
 
 export function animateViewEnter(container: HTMLElement): void {
-  gsap.from(container.querySelectorAll(".reveal"), {
+  const elements = container.querySelectorAll(".reveal");
+  if (!elements.length) return;
+
+  gsap.from(elements, {
     y: 16,
     opacity: 0,
     duration: motionTokens.enterDuration,

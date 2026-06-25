@@ -19,7 +19,10 @@ import { projectItems } from "../content/projects";
 import { lifePosts } from "../content/lifePosts";
 import { getCurrentRoute, navigate, onRouteChange } from "./router";
 import type { RouteKey, RouteParams } from "./types";
-import { getModule, getNavModules, register } from "./moduleRegistry";
+import { getModule, getNavModules, register, type FeatureMountResult, type FeatureCleanup } from "./moduleRegistry";
+
+let activeViewCleanups: FeatureCleanup[] = [];
+let renderRunId = 0;
 
 export function bootstrap(): void {
   registerDefaults();
@@ -111,6 +114,10 @@ function bindNav(): void {
 }
 
 function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void {
+  renderRunId += 1;
+  const currentRunId = renderRunId;
+  runActiveViewCleanups();
+
   const { route, params } = routeInfo;
   const view = document.getElementById("view");
   const sidebarContainer = document.getElementById("sidebarContainer");
@@ -145,7 +152,7 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
     bindHoverLift(".card");
     bindPointerSpotlight(".reading-card");
     window.scrollTo(0, route === "life" ? 225 : 0);
-    current.afterMount?.();
+    registerMountResult(current.afterMount?.(), currentRunId);
   }
 
   document.querySelectorAll("#nav button").forEach((button) => {
@@ -166,6 +173,39 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
   if (cornerLabel) cornerLabel.textContent = route === "playground" ? "Back" : "Play";
   updateQuickDock(route);
   updateNavIndicator();
+}
+
+function runActiveViewCleanups(): void {
+  const cleanups = activeViewCleanups;
+  activeViewCleanups = [];
+  cleanups.forEach((cleanup) => {
+    try {
+      cleanup();
+    } catch (error) {
+      console.warn("View cleanup failed", error);
+    }
+  });
+}
+
+function registerMountResult(result: FeatureMountResult | undefined, runId: number): void {
+  if (!result) return;
+
+  if (result instanceof Promise) {
+    result
+      .then((resolved) => registerMountResult(resolved, runId))
+      .catch((error) => console.warn("View mount failed", error));
+    return;
+  }
+
+  const cleanups = Array.isArray(result) ? result : [result];
+  cleanups.forEach((cleanup) => {
+    if (typeof cleanup !== "function") return;
+    if (runId === renderRunId) {
+      activeViewCleanups.push(cleanup);
+    } else {
+      cleanup();
+    }
+  });
 }
 
 function renderProjectDetail(projectId: string): void {
@@ -297,12 +337,17 @@ function registerDefaults(): void {
     title: "首页",
     visibleInNav: false,
     render: renderHome,
-    afterMount: () => {
-      runTypewriter();
-      mountHomeParticles();
+    afterMount: async () => {
+      void runTypewriter();
+      const cleanups = [
+        mountHomeParticles(),
+        mountScrollEffect()
+      ];
       bindStageNav();
       mountPet();
-      mountScrollEffect();
+      const { mountHomeSpaceScene } = await import("../features/home/spaceScene");
+      cleanups.push(mountHomeSpaceScene());
+      return cleanups;
     }
   });
   register({ key: "docs", label: "技术文档", title: "技术文档", render: renderDocs, afterMount: bindDocFilter });

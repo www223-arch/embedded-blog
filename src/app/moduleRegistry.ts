@@ -1,11 +1,14 @@
 import type { RouteKey } from "./types";
 
+export type FeatureCleanup = () => void;
+export type FeatureMountResult = void | FeatureCleanup | FeatureCleanup[] | Promise<void | FeatureCleanup | FeatureCleanup[]>;
+
 export type FeatureModule = {
   key: RouteKey;
   label: string;
   title: string;
   render: () => string;
-  afterMount?: () => void;
+  afterMount?: () => FeatureMountResult;
   visibleInNav?: boolean;
 };
 

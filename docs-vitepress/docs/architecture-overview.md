@@ -13,6 +13,7 @@ updatedAt: '2026-06-08'
 readingTime: 8 min
 views: 12
 summary: 个人知识库、项目展示和趣味交互的前端架构说明，记录内容从 Markdown 到网页展示的完整链路。
+status: published
 ---
 
 # Architecture Overview

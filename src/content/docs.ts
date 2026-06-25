@@ -1,5 +1,13 @@
 import { docSchema, type TechDoc } from "./schema";
-import { idFromPath, loadMarkdownEntries, valueAsNumber, valueAsString, valueAsStringArray, type Frontmatter } from "./frontmatter";
+import {
+  idFromPath,
+  loadMarkdownEntries,
+  valueAsContentStatus,
+  valueAsNumber,
+  valueAsString,
+  valueAsStringArray,
+  type Frontmatter
+} from "./frontmatter";
 
 const docModules = import.meta.glob<string>("../../docs-vitepress/docs/**/*.md", {
   eager: true,
@@ -26,6 +34,7 @@ export const techDocs: TechDoc[] = loadMarkdownEntries<Frontmatter>(docModules, 
       readingTime: valueAsString(data.readingTime, "5 min"),
       views: valueAsNumber(data.views),
       summary: valueAsString(data.summary, ""),
+      status: valueAsContentStatus(data.status),
       markdown: entry.markdown
     });
   })

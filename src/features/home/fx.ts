@@ -1,10 +1,12 @@
-export function mountHomeParticles(): void {
+export function mountHomeParticles(): () => void {
   const canvas = document.getElementById("heroParticles") as HTMLCanvasElement | null;
-  if (!canvas) return;
+  if (!canvas) return () => {};
   const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (!ctx) return () => {};
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let frameId = 0;
+  let disposed = false;
   const particleCount = 20; // 减少粒子数量，提高性能
   
   let mouseX = -1000;
@@ -108,22 +110,32 @@ export function mountHomeParticles(): void {
       ctx.fill();
     });
     
-    requestAnimationFrame(draw);
+    if (!disposed) frameId = requestAnimationFrame(draw);
   };
 
-  // Mouse events
-  canvas.addEventListener("mousemove", (e) => {
+  const handleMouseMove = (e: MouseEvent) => {
     const rect = canvas.getBoundingClientRect();
     mouseX = e.clientX - rect.left;
     mouseY = e.clientY - rect.top;
-  });
+  };
 
-  canvas.addEventListener("mouseleave", () => {
+  const handleMouseLeave = () => {
     mouseX = -1000;
     mouseY = -1000;
-  });
+  };
+
+  canvas.addEventListener("mousemove", handleMouseMove);
+  canvas.addEventListener("mouseleave", handleMouseLeave);
 
   resize();
   draw();
   window.addEventListener("resize", resize, { passive: true });
+
+  return () => {
+    disposed = true;
+    cancelAnimationFrame(frameId);
+    canvas.removeEventListener("mousemove", handleMouseMove);
+    canvas.removeEventListener("mouseleave", handleMouseLeave);
+    window.removeEventListener("resize", resize);
+  };
 }
