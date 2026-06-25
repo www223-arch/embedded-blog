@@ -150,6 +150,7 @@ links:
 role: Embedded Developer
 period: '2026'
 status: draft
+projectStage: building
 ---
 
 # ${title}

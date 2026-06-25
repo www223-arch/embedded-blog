@@ -3,26 +3,29 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { parse as parseYaml } from "yaml";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
+const CONTENT_STATUSES = new Set(["draft", "published", "archived"]);
+const PROJECT_STAGES = new Set(["concept", "building", "completed", "maintained", "paused"]);
 
 const CONTENT_SECTIONS = [
   {
     type: "docs",
     dir: path.join(rootDir, "docs-vitepress", "docs"),
-    required: ["id", "title", "category", "tags", "level", "updatedAt", "summary"]
+    required: ["id", "title", "category", "tags", "level", "updatedAt", "summary", "status"]
   },
   {
     type: "projects",
     dir: path.join(rootDir, "docs-vitepress", "projects"),
-    required: ["id", "title", "summary", "stack", "highlights", "gallery"]
+    required: ["id", "title", "summary", "stack", "highlights", "gallery", "status", "projectStage"]
   },
   {
     type: "life",
     dir: path.join(rootDir, "docs-vitepress", "life"),
-    required: ["id", "title", "date", "tag", "summary"]
+    required: ["id", "title", "date", "tag", "summary", "status"]
   }
 ];
 
@@ -57,7 +60,13 @@ function checkMarkdownFile(section, filePath) {
     return;
   }
 
-  if (frontmatter.status === "archived") return;
+  if (!CONTENT_STATUSES.has(frontmatter.status)) {
+    issues.push(`${rel}: invalid status "${frontmatter.status ?? ""}"`);
+  }
+
+  if (section.type === "projects" && !PROJECT_STAGES.has(frontmatter.projectStage)) {
+    issues.push(`${rel}: invalid projectStage "${frontmatter.projectStage ?? ""}"`);
+  }
 
   for (const field of section.required) {
     if (!hasValue(frontmatter[field])) {
@@ -81,6 +90,13 @@ function checkMarkdownFile(section, filePath) {
       issues.push(`${rel}: image not found "${imagePath}"`);
     }
   }
+
+  for (const assetPath of collectRichAssetPaths(content)) {
+    const diskPath = path.join(publicDir, assetPath.slice(1));
+    if (!fs.existsSync(diskPath)) {
+      issues.push(`${rel}: rich content asset not found "${assetPath}"`);
+    }
+  }
 }
 
 function listMarkdownFiles(dir) {
@@ -97,52 +113,12 @@ function listMarkdownFiles(dir) {
 function parseFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return null;
-  return parseSimpleYaml(match[1]);
-}
-
-function parseSimpleYaml(source) {
-  const result = {};
-  const lines = source.split(/\r?\n/);
-  let currentKey = null;
-  let currentObject = null;
-
-  for (const line of lines) {
-    if (!line.trim()) continue;
-
-    const listItem = line.match(/^\s*-\s+(.+)$/);
-    if (listItem && currentKey && Array.isArray(result[currentKey])) {
-      const item = listItem[1];
-      const objectPair = item.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
-      if (objectPair) {
-        currentObject = { [objectPair[1]]: cleanValue(objectPair[2]) };
-        result[currentKey].push(currentObject);
-      } else {
-        result[currentKey].push(cleanValue(item));
-        currentObject = null;
-      }
-      continue;
-    }
-
-    const nestedPair = line.match(/^\s{2,}([A-Za-z0-9_-]+):\s*(.*)$/);
-    if (nestedPair && currentObject) {
-      currentObject[nestedPair[1]] = cleanValue(nestedPair[2]);
-      continue;
-    }
-
-    const pair = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
-    if (!pair) continue;
-
-    currentKey = pair[1];
-    currentObject = null;
-    const rawValue = pair[2].trim();
-    result[currentKey] = rawValue ? cleanValue(rawValue) : [];
+  try {
+    const parsed = parseYaml(match[1]);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
   }
-
-  return result;
-}
-
-function cleanValue(value) {
-  return value.replace(/^['"]|['"]$/g, "").trim();
 }
 
 function hasValue(value) {
@@ -164,6 +140,29 @@ function collectImagePaths(frontmatter, content) {
   }
 
   return paths.filter((value) => value && !value.startsWith("http"));
+}
+
+function collectRichAssetPaths(content) {
+  const paths = [];
+  const fences = content.matchAll(/```(video|gallery|demo)\s*\n([\s\S]*?)```/g);
+
+  for (const [, type, source] of fences) {
+    try {
+      const data = parseYaml(source);
+      if (!data || typeof data !== "object" || Array.isArray(data)) continue;
+      if (type === "video") {
+        paths.push(data.src, data.poster);
+      } else if (type === "demo") {
+        paths.push(data.src);
+      } else if (Array.isArray(data.images)) {
+        paths.push(...data.images.map((image) => image?.src));
+      }
+    } catch {
+      // The renderer will show an inline error; validation reports missing metadata elsewhere.
+    }
+  }
+
+  return paths.filter((value) => typeof value === "string" && value.startsWith("/"));
 }
 
 function relative(filePath) {

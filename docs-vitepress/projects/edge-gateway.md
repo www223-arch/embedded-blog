@@ -18,6 +18,8 @@ gallery:
 links:
   - label: View Details
     href: '#'
+status: published
+projectStage: maintained
 ---
 
 # Industrial Edge Gateway

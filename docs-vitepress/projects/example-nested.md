@@ -1,6 +1,7 @@
 ---
 id: example-nested
 status: archived
+projectStage: concept
 title: 文档嵌套与引用示例
 summary: 展示如何在文档中引用其他文档，以及如何使用目录结构
 stack:
