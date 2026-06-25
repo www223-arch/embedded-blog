@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 artifacts/
+tools/content-studio/.backups/
 
 # VitePress
 docs-vitepress/.vitepress/cache

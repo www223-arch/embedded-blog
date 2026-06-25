@@ -18,6 +18,8 @@ gallery:
 links:
   - label: Technical Docs
     href: '#'
+status: published
+projectStage: completed
 ---
 
 # STM32 PID Motor Controller
