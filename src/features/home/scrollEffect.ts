@@ -1,4 +1,5 @@
 import { createRocketLaunchState } from "./rocketLaunchMotion";
+import { createStageRevealState } from "./stageRevealMotion";
 
 export function mountScrollEffect(): () => void {
   const homeContainer = document.querySelector('.home-container');
@@ -10,6 +11,7 @@ export function mountScrollEffect(): () => void {
   const rocketContainer = document.querySelector('.rocket-container') as HTMLElement;
   
   if (!homeContainer || !homeBackground || !homeForeground || !navStage) return () => {};
+  const navStageElement = navStage;
   
   let hasTriggered = false;
   let currentPhase: 'idle' | 'jet' | 'launch' = 'idle';
@@ -53,10 +55,17 @@ export function mountScrollEffect(): () => void {
       handleRocketAnimation(scrollY);
     }
     
-    // ??????????????
-    if (scrollProgress > 0.5 && !hasTriggered && navStage) {
+    const stageState = createStageRevealState({
+      scrollY,
+      viewportHeight: windowHeight,
+      cardCount: stageCards.length
+    });
+
+    navStageElement.style.setProperty("--stage-unlock", stageState.intensity.toFixed(3));
+
+    if (stageState.visible && !hasTriggered) {
       hasTriggered = true;
-      navStage.classList.add('visible');
+      navStageElement.classList.add('visible');
       
       setTimeout(() => {
         stageCards.forEach(card => {
@@ -64,6 +73,11 @@ export function mountScrollEffect(): () => void {
         });
       }, 100);
     }
+
+    stageCards.forEach((card, index) => {
+      const node = card as HTMLElement;
+      node.style.setProperty("--stage-card-progress", (stageState.cardProgress[index] ?? 0).toFixed(3));
+    });
   }
   
   function handleRocketAnimation(scrollY: number) {
@@ -93,6 +107,12 @@ export function mountScrollEffect(): () => void {
     homeBackground.style.transform = "";
     homeBackground.style.filter = "";
     homeForeground.style.transform = "";
+    navStageElement.style.removeProperty("--stage-unlock");
+    stageCards.forEach((card) => {
+      const node = card as HTMLElement;
+      node.classList.remove("visible");
+      node.style.removeProperty("--stage-card-progress");
+    });
     heroTextElements.forEach((element) => {
       const node = element as HTMLElement;
       node.style.transform = "";
