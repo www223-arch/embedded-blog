@@ -339,9 +339,10 @@ function registerDefaults(): void {
     render: renderHome,
     afterMount: () => {
       void runTypewriter();
-      const cleanups = [
+      const cleanups: FeatureCleanup[] = [
         mountHomeParticles(),
-        mountScrollEffect()
+        mountScrollEffect(),
+        mountLazyHomeIssScene()
       ];
       bindStageNav();
       mountPet();
@@ -366,6 +367,23 @@ function bindStageNav(): void {
   document.querySelectorAll<HTMLElement>(".stage-card[data-route]").forEach((card) => {
     card.addEventListener("click", () => navigate(card.dataset.route as RouteKey));
   });
+}
+
+function mountLazyHomeIssScene(): FeatureCleanup {
+  let disposed = false;
+  let cleanup: FeatureCleanup | undefined;
+
+  void import("../features/home/issScene")
+    .then(({ mountHomeIssScene }) => {
+      if (disposed) return;
+      cleanup = mountHomeIssScene();
+    })
+    .catch((error) => console.warn("ISS scene mount failed", error));
+
+  return () => {
+    disposed = true;
+    cleanup?.();
+  };
 }
 
 function updateNavIndicator(): void {
