@@ -327,6 +327,8 @@ main {
   background: transparent;
   --hero-pointer-x: 50%;
   --hero-pointer-y: 44%;
+  --launch-tunnel-intensity: 0.26;
+  --launch-beam-opacity: 0.16;
 }
 
 .hero::after {
@@ -378,7 +380,7 @@ main {
 }
 
 .space-field.ready {
-  opacity: 0.82;
+  opacity: calc(0.68 + var(--launch-tunnel-intensity) * 0.24);
 }
 
 .space-field::after {
@@ -394,7 +396,7 @@ main {
   background-size: 100% 100%;
   border-radius: 50%;
   filter: blur(0.2px);
-  opacity: 0.48;
+  opacity: calc(0.3 + var(--launch-beam-opacity) * 0.32);
   transform: translateX(-50%) rotate(-12deg);
   pointer-events: none;
 }
@@ -431,7 +433,7 @@ main {
     radial-gradient(circle, rgba(0, 212, 255, 0.22) 0 16%, rgba(0, 113, 227, 0.12) 34%, transparent 68%),
     conic-gradient(from 210deg, transparent 0 22%, rgba(255, 255, 255, 0.14) 24%, transparent 28%, transparent 55%, rgba(0, 212, 255, 0.16) 58%, transparent 62%);
   filter: blur(1px);
-  opacity: 0.72;
+  opacity: calc(0.58 + var(--launch-tunnel-intensity) * 0.28);
   transform: translateX(-50%) rotate(-8deg);
   animation: orbitalGlow 8s linear infinite;
   pointer-events: none;
@@ -446,7 +448,7 @@ main {
   height: 280px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(0, 212, 255, 0.26) 42%, transparent);
   filter: blur(1px);
-  opacity: 0.55;
+  opacity: calc(0.42 + var(--launch-beam-opacity) * 0.42);
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -457,6 +459,7 @@ main {
   width: 48px;
   height: 140px;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 0 calc(12px + var(--launch-tunnel-intensity) * 18px) rgba(0, 212, 255, 0.42));
 }
 
 /* 火箭头部 - 流线型 */

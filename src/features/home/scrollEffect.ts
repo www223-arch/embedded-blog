@@ -1,3 +1,5 @@
+import { createRocketLaunchState } from "./rocketLaunchMotion";
+
 export function mountScrollEffect(): () => void {
   const homeContainer = document.querySelector('.home-container');
   const homeBackground = document.querySelector<HTMLElement>('.home-background');
@@ -11,11 +13,6 @@ export function mountScrollEffect(): () => void {
   
   let hasTriggered = false;
   let currentPhase: 'idle' | 'jet' | 'launch' = 'idle';
-  
-  // ???????????
-  const SCROLL_THRESHOLD_JET = 30;      // ???????????????
-  const SCROLL_THRESHOLD_LAUNCH = 150;  // ??????????????
-  const SCROLL_MAX_LAUNCH = 600;        // ??????????????????
   
   function handleScroll() {
     const scrollY = window.scrollY;
@@ -71,55 +68,17 @@ export function mountScrollEffect(): () => void {
   
   function handleRocketAnimation(scrollY: number) {
     if (!rocketContainer) return;
-    
-    // ???1: ??????? (SCROLL_THRESHOLD_JET ~ SCROLL_THRESHOLD_LAUNCH)
-    if (scrollY >= SCROLL_THRESHOLD_JET && scrollY < SCROLL_THRESHOLD_LAUNCH) {
-      if (currentPhase !== 'jet') {
-        currentPhase = 'jet';
-        rocketContainer.classList.remove('phase-launch');
-        rocketContainer.classList.add('phase-jet');
-      }
-      
-      // ???????????????????????????????????
-      const jetProgress = (scrollY - SCROLL_THRESHOLD_JET) / (SCROLL_THRESHOLD_LAUNCH - SCROLL_THRESHOLD_JET);
-      const sinkY = jetProgress * 10; // ??????10px
-      rocketContainer.style.transform = `translateX(-50%) translateY(${sinkY}px)`;
-      rocketContainer.style.opacity = '1';
+
+    const rocketState = createRocketLaunchState({ scrollY, viewportHeight: window.innerHeight });
+
+    if (currentPhase !== rocketState.phase) {
+      currentPhase = rocketState.phase;
+      rocketContainer.classList.toggle("phase-jet", rocketState.phase === "jet");
+      rocketContainer.classList.toggle("phase-launch", rocketState.phase === "launch");
     }
-    // ???2: ???? (SCROLL_THRESHOLD_LAUNCH ~ SCROLL_MAX_LAUNCH)
-    else if (scrollY >= SCROLL_THRESHOLD_LAUNCH) {
-      if (currentPhase !== 'launch') {
-        currentPhase = 'launch';
-        rocketContainer.classList.remove('phase-jet');
-        rocketContainer.classList.add('phase-launch');
-      }
-      
-      // ??????????? (0-1)
-      const launchProgress = Math.min(
-        (scrollY - SCROLL_THRESHOLD_LAUNCH) / (SCROLL_MAX_LAUNCH - SCROLL_THRESHOLD_LAUNCH),
-        1
-      );
-      
-      // ?????????????????????????????
-      const launchY = -launchProgress * (window.innerHeight + 300); // ?????????
-      const rocketScale = 1 - launchProgress * 0.3; // ?????
-      const rocketOpacity = 1 - launchProgress * 0.8; // ?????
-      
-      rocketContainer.style.transform = `translateX(-50%) translateY(${launchY}px) scale(${rocketScale})`;
-      rocketContainer.style.opacity = `${rocketOpacity}`;
-    }
-    // ?????
-    else {
-      if (currentPhase !== 'idle') {
-        currentPhase = 'idle';
-        rocketContainer.classList.remove('phase-jet', 'phase-launch');
-      }
-      
-      // ???????????????
-      const idleScale = Math.max(0.85, 1 - scrollY / SCROLL_THRESHOLD_JET * 0.15);
-      rocketContainer.style.transform = `translateX(-50%) scale(${idleScale})`;
-      rocketContainer.style.opacity = '1';
-    }
+
+    rocketContainer.style.transform = `translateX(-50%) translateY(${rocketState.translateY}px) scale(${rocketState.scale})`;
+    rocketContainer.style.opacity = `${rocketState.opacity}`;
   }
   
   // ?????

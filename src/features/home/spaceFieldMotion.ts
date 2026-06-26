@@ -16,7 +16,10 @@ export type SpaceFieldState = {
     z: number;
   };
   orbitalOpacity: number;
+  beamOpacity: number;
+  rocketAura: number;
   starSpeed: number;
+  tunnelCompression: number;
   warpStrength: number;
 };
 
@@ -38,8 +41,11 @@ export function createSpaceFieldState(input: SpaceFieldInput): SpaceFieldState {
       y: normalizeZero(dx * 0.22 + launchProgress * 0.16),
       z: normalizeZero(-dx * 0.08)
     },
+    beamOpacity: normalizeZero(0.16 + launchProgress * 0.88125),
     orbitalOpacity: normalizeZero(0.28 + launchProgress * 0.44),
+    rocketAura: normalizeZero(0.26 + launchProgress * 0.88125),
     starSpeed: normalizeZero(0.16 + launchProgress * 0.84),
+    tunnelCompression: normalizeZero(0.18 + launchProgress * 0.652),
     warpStrength: normalizeZero(0.22 + launchProgress * 0.78)
   };
 }

@@ -11,6 +11,7 @@ type StarPoint = {
 
 const STAR_COUNT = 720;
 const FIELD_DEPTH = 13;
+const TUNNEL_RING_COUNT = 13;
 
 export function mountHomeSpaceField(): () => void {
   const host = document.getElementById("spaceField");
@@ -26,9 +27,12 @@ export function mountHomeSpaceField(): () => void {
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
   const fieldGroup = new THREE.Group();
   const orbitGroup = createOrbitGroup();
+  const tunnelGroup = createTunnelGroup();
+  const beam = createBeamMesh();
   const starPoints = createStarPoints(STAR_COUNT);
   const stars = createStarMesh(starPoints);
   const startedAt = performance.now();
+  const hero = host.closest<HTMLElement>(".hero");
 
   let disposed = false;
   let frameId = 0;
@@ -40,7 +44,7 @@ export function mountHomeSpaceField(): () => void {
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
-  fieldGroup.add(stars, orbitGroup);
+  fieldGroup.add(stars, orbitGroup, tunnelGroup, beam);
   scene.add(fieldGroup);
   host.classList.add("ready");
   host.dataset.state = "ready";
@@ -78,6 +82,9 @@ export function mountHomeSpaceField(): () => void {
 
     updateStars(stars, starPoints, time, state.starSpeed, state.warpStrength);
     updateOrbitGroup(orbitGroup, time, state.orbitalOpacity);
+    updateTunnelGroup(tunnelGroup, time, state.tunnelCompression, state.orbitalOpacity);
+    updateBeam(beam, time, state.beamOpacity);
+    syncHeroLaunchVars(hero, state.rocketAura, state.beamOpacity);
 
     fieldGroup.rotation.set(
       state.fieldRotation.x + Math.sin(time * 0.16) * 0.015,
@@ -109,6 +116,7 @@ export function mountHomeSpaceField(): () => void {
     window.removeEventListener("scroll", handleScroll);
     host.classList.remove("ready");
     delete host.dataset.state;
+    clearHeroLaunchVars(hero);
     disposeObject(scene);
     renderer.dispose();
     renderer.domElement.remove();
@@ -223,6 +231,56 @@ function createOrbitGroup(): THREE.Group {
   return group;
 }
 
+function createTunnelGroup(): THREE.Group {
+  const group = new THREE.Group();
+
+  for (let index = 0; index < TUNNEL_RING_COUNT; index += 1) {
+    const depth = index / (TUNNEL_RING_COUNT - 1);
+    const radius = 0.86 + depth * 3.8;
+    const geometry = createRingGeometry(radius, 0.42 + depth * 1.18);
+    const material = new THREE.LineBasicMaterial({
+      color: index % 3 === 0 ? 0xffc46b : 0x7fe9ff,
+      opacity: 0.08 + depth * 0.08,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const ring = new THREE.LineLoop(geometry, material);
+    ring.position.z = -2.1 - depth * 8.8;
+    ring.rotation.z = index * 0.33;
+    ring.userData.baseDepth = depth;
+    ring.userData.baseRadius = radius;
+    group.add(ring);
+  }
+
+  return group;
+}
+
+function createRingGeometry(radiusX: number, radiusY: number): THREE.BufferGeometry {
+  const points = [];
+  for (let index = 0; index <= 128; index += 1) {
+    const angle = (index / 128) * Math.PI * 2;
+    points.push(new THREE.Vector3(Math.cos(angle) * radiusX, Math.sin(angle) * radiusY - 0.16, 0));
+  }
+  return new THREE.BufferGeometry().setFromPoints(points);
+}
+
+function createBeamMesh(): THREE.Mesh {
+  const geometry = new THREE.ConeGeometry(1.42, 8.6, 64, 1, true);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x73e9ff,
+    opacity: 0.08,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const beam = new THREE.Mesh(geometry, material);
+  beam.rotation.x = Math.PI / 2;
+  beam.position.set(0, -0.42, -5.6);
+  return beam;
+}
+
 function updateOrbitGroup(group: THREE.Group, time: number, opacity: number): void {
   group.children.forEach((child, index) => {
     child.rotation.z += 0.0008 * (index + 1);
@@ -230,6 +288,39 @@ function updateOrbitGroup(group: THREE.Group, time: number, opacity: number): vo
     const material = line.material as THREE.LineBasicMaterial;
     material.opacity = opacity * (0.58 - index * 0.1) + Math.sin(time * 0.8 + index) * 0.025;
   });
+}
+
+function updateTunnelGroup(group: THREE.Group, time: number, compression: number, opacity: number): void {
+  group.children.forEach((child, index) => {
+    const ring = child as THREE.Line;
+    const material = ring.material as THREE.LineBasicMaterial;
+    const depth = ring.userData.baseDepth as number;
+    const pulse = Math.sin(time * 1.15 + index * 0.7) * 0.035;
+    const scale = 1 - compression * 0.28 + depth * compression * 0.18 + pulse;
+
+    ring.position.z = -1.9 - depth * (9.6 - compression * 3.2);
+    ring.scale.setScalar(Math.max(scale, 0.42));
+    ring.rotation.z += 0.0018 + compression * 0.0032;
+    material.opacity = opacity * (0.16 + depth * 0.18);
+  });
+}
+
+function updateBeam(beam: THREE.Mesh, time: number, opacity: number): void {
+  const material = beam.material as THREE.MeshBasicMaterial;
+  const pulse = 0.92 + Math.sin(time * 2.2) * 0.08;
+  beam.scale.set(1 + opacity * 0.18, pulse, 1 + opacity * 0.18);
+  material.opacity = opacity * 0.18;
+}
+
+function syncHeroLaunchVars(hero: HTMLElement | null, rocketAura: number, beamOpacity: number): void {
+  if (!hero) return;
+  hero.style.setProperty("--launch-tunnel-intensity", rocketAura.toFixed(3));
+  hero.style.setProperty("--launch-beam-opacity", beamOpacity.toFixed(3));
+}
+
+function clearHeroLaunchVars(hero: HTMLElement | null): void {
+  hero?.style.removeProperty("--launch-tunnel-intensity");
+  hero?.style.removeProperty("--launch-beam-opacity");
 }
 
 function disposeObject(object: THREE.Object3D): void {
