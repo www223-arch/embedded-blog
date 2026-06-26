@@ -70,6 +70,16 @@ type BrowserDraft = {
   markdown: string;
 };
 
+type ContentSnapshot = {
+  frontmatter: Record<string, unknown>;
+  markdown: string;
+};
+
+type DiffLine = {
+  type: "same" | "add" | "remove";
+  text: string;
+};
+
 type AssetItem = {
   kind: AssetKind;
   name: string;
@@ -123,6 +133,7 @@ const state: {
   assets: AssetItem[];
   createIdTouched: boolean;
   recoveryDraft: BrowserDraft | null;
+  originalSnapshot: ContentSnapshot | null;
 } = {
   items: [],
   selected: null,
@@ -136,7 +147,8 @@ const state: {
   uploadingAsset: false,
   assets: [],
   createIdTouched: false,
-  recoveryDraft: null
+  recoveryDraft: null,
+  originalSnapshot: null
 };
 
 app.innerHTML = `
@@ -159,6 +171,9 @@ app.innerHTML = `
         </button>
         <button class="command-button primary" id="saveButton" type="button" disabled>
           ${icon("save")}<span>保存</span>
+        </button>
+        <button class="command-button" id="diffButton" type="button" disabled>
+          ${icon("file-text")}<span>预览差异</span>
         </button>
         <a class="command-button" href="http://127.0.0.1:5173/embedded-blog/" target="_blank" rel="noreferrer">
           ${icon("external-link")}<span>打开主站</span>
@@ -310,6 +325,25 @@ app.innerHTML = `
         </footer>
       </form>
     </div>
+    <div class="modal-backdrop" id="diffModal" hidden>
+      <section class="diff-dialog" role="dialog" aria-modal="true" aria-labelledby="diffTitle">
+        <header>
+          <div>
+            <span>DIFF</span>
+            <strong id="diffTitle">保存前差异</strong>
+          </div>
+          <button class="icon-button" id="diffCloseButton" type="button" title="关闭" aria-label="关闭">${icon("x")}</button>
+        </header>
+        <div class="diff-summary" id="diffSummary"></div>
+        <div class="diff-body" id="diffBody"></div>
+        <footer>
+          <button class="command-button" id="diffCancelButton" type="button">继续编辑</button>
+          <button class="command-button primary" id="diffSaveButton" type="button">
+            ${icon("save")}<span>保存这些修改</span>
+          </button>
+        </footer>
+      </section>
+    </div>
   </div>
 `;
 
@@ -338,6 +372,10 @@ function bindControls(): void {
   document.querySelector("#newContentButton")?.addEventListener("click", openCreateDialog);
   document.querySelector("#refreshButton")?.addEventListener("click", () => void loadContent(state.selected));
   document.querySelector("#saveButton")?.addEventListener("click", () => void saveCurrentContent());
+  document.querySelector("#diffButton")?.addEventListener("click", openDiffDialog);
+  document.querySelector("#diffCloseButton")?.addEventListener("click", closeDiffDialog);
+  document.querySelector("#diffCancelButton")?.addEventListener("click", closeDiffDialog);
+  document.querySelector("#diffSaveButton")?.addEventListener("click", () => void saveCurrentContent({ closeDiff: true }));
   document.querySelector("#recoverDraftButton")?.addEventListener("click", recoverBrowserDraft);
   document.querySelector("#discardDraftButton")?.addEventListener("click", discardBrowserDraft);
   document.querySelector("#uploadAssetButton")?.addEventListener("click", () => document.querySelector<HTMLInputElement>("#assetInput")?.click());
@@ -616,6 +654,7 @@ async function selectContent(summary: ContentSummary): Promise<void> {
     if (!response.ok) throw new Error(payload.error?.message || "内容读取失败");
     const detail = payload.item as ContentDetail;
     state.selected = detail;
+    state.originalSnapshot = createSnapshot(detail);
     state.dirty = false;
     state.recoveryDraft = getNewerBrowserDraft(detail);
     state.assets = [];
@@ -788,7 +827,7 @@ function markDirty(): void {
   updateSaveState();
 }
 
-async function saveCurrentContent(): Promise<void> {
+async function saveCurrentContent(options: { closeDiff?: boolean } = {}): Promise<void> {
   if (!state.selected || state.saving) return;
   state.saving = true;
   updateSaveState();
@@ -808,6 +847,7 @@ async function saveCurrentContent(): Promise<void> {
     if (!response.ok) throw new Error(payload.error?.message || "保存失败");
 
     state.selected = payload.item;
+    state.originalSnapshot = createSnapshot(payload.item);
     state.items = state.items.map((item) =>
       item.type === payload.item.type && item.id === payload.item.id ? toSummary(payload.item) : item
     );
@@ -818,6 +858,7 @@ async function saveCurrentContent(): Promise<void> {
     renderEditor();
     renderRecoveryBanner();
     renderPreview();
+    if (options.closeDiff) closeDiffDialog();
     setSaveMessage(`已保存，备份：${payload.backup}`);
   } catch (error) {
     setSaveMessage(error instanceof Error ? error.message : "保存失败", true);
@@ -825,6 +866,126 @@ async function saveCurrentContent(): Promise<void> {
     state.saving = false;
     updateSaveState();
   }
+}
+
+function openDiffDialog(): void {
+  if (!state.selected || !state.originalSnapshot) return;
+  const modal = document.querySelector<HTMLElement>("#diffModal");
+  const summary = document.querySelector<HTMLElement>("#diffSummary");
+  const body = document.querySelector<HTMLElement>("#diffBody");
+  if (!modal || !summary || !body) return;
+
+  const current = createSnapshot(state.selected);
+  const sections = [
+    {
+      label: "Frontmatter",
+      oldText: serializeFrontmatter(state.originalSnapshot.frontmatter),
+      newText: serializeFrontmatter(current.frontmatter)
+    },
+    {
+      label: "Markdown",
+      oldText: state.originalSnapshot.markdown.trimEnd(),
+      newText: current.markdown.trimEnd()
+    }
+  ].map((section) => ({
+    ...section,
+    diff: buildLineDiff(section.oldText, section.newText)
+  }));
+
+  const added = sections.reduce((total, section) => total + section.diff.filter((line) => line.type === "add").length, 0);
+  const removed = sections.reduce((total, section) => total + section.diff.filter((line) => line.type === "remove").length, 0);
+  summary.innerHTML = `
+    <span>${escapeHtml(state.selected.relativePath)}</span>
+    <strong>${added} 行新增 · ${removed} 行删除</strong>
+  `;
+  body.innerHTML = sections.map(renderDiffSection).join("");
+  modal.hidden = false;
+}
+
+function closeDiffDialog(): void {
+  const modal = document.querySelector<HTMLElement>("#diffModal");
+  if (modal) modal.hidden = true;
+}
+
+function renderDiffSection(section: { label: string; diff: DiffLine[] }): string {
+  const changed = section.diff.some((line) => line.type !== "same");
+  const lines = changed
+    ? section.diff.map(renderDiffLine).join("")
+    : `<div class="diff-line same"><span></span><code>没有变化</code></div>`;
+  return `
+    <section class="diff-section">
+      <h3>${escapeHtml(section.label)}</h3>
+      <div class="diff-lines">${lines}</div>
+    </section>
+  `;
+}
+
+function renderDiffLine(line: DiffLine): string {
+  const prefix = line.type === "add" ? "+" : line.type === "remove" ? "-" : " ";
+  return `<div class="diff-line ${line.type}"><span>${prefix}</span><code>${escapeHtml(line.text || " ")}</code></div>`;
+}
+
+function buildLineDiff(oldText: string, newText: string): DiffLine[] {
+  const oldLines = oldText.split("\n");
+  const newLines = newText.split("\n");
+  const table = Array.from({ length: oldLines.length + 1 }, () => Array<number>(newLines.length + 1).fill(0));
+
+  for (let oldIndex = oldLines.length - 1; oldIndex >= 0; oldIndex -= 1) {
+    for (let newIndex = newLines.length - 1; newIndex >= 0; newIndex -= 1) {
+      table[oldIndex][newIndex] =
+        oldLines[oldIndex] === newLines[newIndex]
+          ? table[oldIndex + 1][newIndex + 1] + 1
+          : Math.max(table[oldIndex + 1][newIndex], table[oldIndex][newIndex + 1]);
+    }
+  }
+
+  const result: DiffLine[] = [];
+  let oldIndex = 0;
+  let newIndex = 0;
+  while (oldIndex < oldLines.length && newIndex < newLines.length) {
+    if (oldLines[oldIndex] === newLines[newIndex]) {
+      result.push({ type: "same", text: oldLines[oldIndex] });
+      oldIndex += 1;
+      newIndex += 1;
+    } else if (table[oldIndex + 1][newIndex] >= table[oldIndex][newIndex + 1]) {
+      result.push({ type: "remove", text: oldLines[oldIndex] });
+      oldIndex += 1;
+    } else {
+      result.push({ type: "add", text: newLines[newIndex] });
+      newIndex += 1;
+    }
+  }
+
+  while (oldIndex < oldLines.length) {
+    result.push({ type: "remove", text: oldLines[oldIndex] });
+    oldIndex += 1;
+  }
+  while (newIndex < newLines.length) {
+    result.push({ type: "add", text: newLines[newIndex] });
+    newIndex += 1;
+  }
+  return result;
+}
+
+function createSnapshot(detail: ContentDetail): ContentSnapshot {
+  return {
+    frontmatter: structuredClone(detail.frontmatter),
+    markdown: detail.markdown
+  };
+}
+
+function serializeFrontmatter(value: Record<string, unknown>): string {
+  return JSON.stringify(sortObject(value), null, 2);
+}
+
+function sortObject(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortObject);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, child]) => [key, sortObject(child)])
+  );
 }
 
 function renderPreview(): void {
@@ -1260,10 +1421,14 @@ function validateDetail(detail: ContentDetail): string[] {
 
 function updateSaveState(): void {
   const saveButton = document.querySelector<HTMLButtonElement>("#saveButton");
+  const diffButton = document.querySelector<HTMLButtonElement>("#diffButton");
   const diskState = document.querySelector<HTMLElement>("#diskState");
   if (saveButton) {
     saveButton.disabled = !state.selected || !state.dirty || state.saving;
     saveButton.querySelector("span")!.textContent = state.saving ? "保存中" : "保存";
+  }
+  if (diffButton) {
+    diffButton.disabled = !state.selected || !state.originalSnapshot || !state.dirty || state.saving;
   }
   if (diskState) {
     diskState.textContent = state.dirty ? "浏览器草稿" : "磁盘内容";
