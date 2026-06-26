@@ -367,7 +367,7 @@ main {
   z-index: 2;
 }
 
-.iss-scene {
+.space-field {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -377,28 +377,29 @@ main {
   transition: opacity 0.8s ease;
 }
 
-.iss-scene.ready {
-  opacity: 0.92;
+.space-field.ready {
+  opacity: 0.82;
 }
 
-.iss-scene::after {
+.space-field::after {
   content: "";
   position: absolute;
-  inset: 12% 0 auto auto;
-  width: min(58vw, 680px);
-  height: min(58vw, 680px);
+  left: 50%;
+  bottom: -20%;
+  width: min(76vw, 760px);
+  height: min(76vw, 760px);
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.2) 0 1px, transparent 2px),
-    conic-gradient(from 200deg, transparent 0 16%, rgba(0, 212, 255, 0.16) 20%, transparent 26%, transparent 58%, rgba(255, 159, 10, 0.11) 63%, transparent 70%);
+    radial-gradient(circle, transparent 0 36%, rgba(0, 212, 255, 0.12) 37%, transparent 38%),
+    conic-gradient(from 216deg, transparent 0 18%, rgba(0, 212, 255, 0.15) 22%, transparent 30%, transparent 55%, rgba(255, 159, 10, 0.1) 60%, transparent 68%);
   background-size: 100% 100%;
   border-radius: 50%;
   filter: blur(0.2px);
-  opacity: 0.56;
-  transform: translateX(18%) rotate(-18deg);
+  opacity: 0.48;
+  transform: translateX(-50%) rotate(-12deg);
   pointer-events: none;
 }
 
-.iss-scene-canvas {
+.space-field-canvas {
   display: block;
   width: 100%;
   height: 100%;

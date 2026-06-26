@@ -342,7 +342,7 @@ function registerDefaults(): void {
       const cleanups: FeatureCleanup[] = [
         mountHomeParticles(),
         mountScrollEffect(),
-        mountLazyHomeIssScene()
+        mountLazyHomeSpaceField()
       ];
       bindStageNav();
       mountPet();
@@ -369,16 +369,16 @@ function bindStageNav(): void {
   });
 }
 
-function mountLazyHomeIssScene(): FeatureCleanup {
+function mountLazyHomeSpaceField(): FeatureCleanup {
   let disposed = false;
   let cleanup: FeatureCleanup | undefined;
 
-  void import("../features/home/issScene")
-    .then(({ mountHomeIssScene }) => {
+  void import("../features/home/spaceField")
+    .then(({ mountHomeSpaceField }) => {
       if (disposed) return;
-      cleanup = mountHomeIssScene();
+      cleanup = mountHomeSpaceField();
     })
-    .catch((error) => console.warn("ISS scene mount failed", error));
+    .catch((error) => console.warn("Space field mount failed", error));
 
   return () => {
     disposed = true;
