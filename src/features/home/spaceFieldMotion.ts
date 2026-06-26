@@ -21,6 +21,8 @@ export type SpaceFieldState = {
   starSpeed: number;
   tunnelCompression: number;
   warpStrength: number;
+  plumeLength: number;
+  plumeSpread: number;
 };
 
 export function createSpaceFieldState(input: SpaceFieldInput): SpaceFieldState {
@@ -46,7 +48,9 @@ export function createSpaceFieldState(input: SpaceFieldInput): SpaceFieldState {
     rocketAura: normalizeZero(0.26 + launchProgress * 0.88125),
     starSpeed: normalizeZero(0.16 + launchProgress * 0.84),
     tunnelCompression: normalizeZero(0.18 + launchProgress * 0.652),
-    warpStrength: normalizeZero(0.22 + launchProgress * 0.78)
+    warpStrength: normalizeZero(0.22 + launchProgress * 0.78),
+    plumeLength: normalizeZero(0.34 + launchProgress * 0.92),
+    plumeSpread: normalizeZero(0.18 + launchProgress * 0.44)
   };
 }
 

@@ -35,6 +35,7 @@
   --hero-pointer-y: 44%;
   --launch-tunnel-intensity: 0.26;
   --launch-beam-opacity: 0.16;
+  --launch-plume-length: 0.34;
 }
 
 .hero::after {

@@ -21,6 +21,8 @@ test("space field state turns pointer and scroll into restrained launch motion",
   assert.equal(Number(state.tunnelCompression.toFixed(3)), 0.597);
   assert.equal(Number(state.beamOpacity.toFixed(3)), 0.724);
   assert.equal(Number(state.rocketAura.toFixed(3)), 0.824);
+  assert.equal(Number(state.plumeLength.toFixed(3)), 0.929);
+  assert.equal(Number(state.plumeSpread.toFixed(3)), 0.462);
 });
 
 test("space field state stays calm when pointer and scroll inputs are absent", () => {
@@ -38,4 +40,6 @@ test("space field state stays calm when pointer and scroll inputs are absent", (
   assert.equal(state.tunnelCompression, 0.18);
   assert.equal(state.beamOpacity, 0.16);
   assert.equal(state.rocketAura, 0.26);
+  assert.equal(state.plumeLength, 0.34);
+  assert.equal(state.plumeSpread, 0.18);
 });

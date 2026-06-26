@@ -9,7 +9,16 @@ type StarPoint = {
   z: number;
 };
 
+type PlumePoint = {
+  angle: number;
+  radius: number;
+  drift: number;
+  speed: number;
+  lane: number;
+};
+
 const STAR_COUNT = 720;
+const PLUME_COUNT = 190;
 const FIELD_DEPTH = 13;
 const TUNNEL_RING_COUNT = 13;
 
@@ -30,7 +39,9 @@ export function mountHomeSpaceField(): () => void {
   const tunnelGroup = createTunnelGroup();
   const beam = createBeamMesh();
   const starPoints = createStarPoints(STAR_COUNT);
+  const plumePoints = createPlumePoints(PLUME_COUNT);
   const stars = createStarMesh(starPoints);
+  const plume = createPlumeMesh(plumePoints);
   const startedAt = performance.now();
   const hero = host.closest<HTMLElement>(".hero");
 
@@ -44,7 +55,7 @@ export function mountHomeSpaceField(): () => void {
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
-  fieldGroup.add(stars, orbitGroup, tunnelGroup, beam);
+  fieldGroup.add(stars, orbitGroup, tunnelGroup, beam, plume);
   scene.add(fieldGroup);
   host.classList.add("ready");
   host.dataset.state = "ready";
@@ -84,7 +95,8 @@ export function mountHomeSpaceField(): () => void {
     updateOrbitGroup(orbitGroup, time, state.orbitalOpacity);
     updateTunnelGroup(tunnelGroup, time, state.tunnelCompression, state.orbitalOpacity);
     updateBeam(beam, time, state.beamOpacity);
-    syncHeroLaunchVars(hero, state.rocketAura, state.beamOpacity);
+    updatePlume(plume, plumePoints, time, state.plumeLength, state.plumeSpread, state.beamOpacity);
+    syncHeroLaunchVars(hero, state.rocketAura, state.beamOpacity, state.plumeLength);
 
     fieldGroup.rotation.set(
       state.fieldRotation.x + Math.sin(time * 0.16) * 0.015,
@@ -151,6 +163,19 @@ function createStarPoints(count: number): StarPoint[] {
   });
 }
 
+function createPlumePoints(count: number): PlumePoint[] {
+  return Array.from({ length: count }, (_, index) => {
+    const lane = index % 6;
+    return {
+      angle: Math.random() * Math.PI * 2,
+      radius: Math.random(),
+      drift: Math.random() * Math.PI * 2,
+      speed: 0.65 + Math.random() * 1.55,
+      lane
+    };
+  });
+}
+
 function createStarMesh(points: StarPoint[]): THREE.Points {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(points.length * 3), 3));
@@ -167,6 +192,25 @@ function createStarMesh(points: StarPoint[]): THREE.Points {
   return new THREE.Points(geometry, material);
 }
 
+function createPlumeMesh(points: PlumePoint[]): THREE.Points {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(points.length * 3), 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(createPlumeColors(points.length), 3));
+
+  const material = new THREE.PointsMaterial({
+    opacity: 0.3,
+    size: 0.038,
+    transparent: true,
+    vertexColors: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+
+  const plume = new THREE.Points(geometry, material);
+  plume.position.set(0, -1.72, -2.15);
+  return plume;
+}
+
 function createStarColors(count: number): Float32Array {
   const colors = new Float32Array(count * 3);
   const palette = [
@@ -174,6 +218,25 @@ function createStarColors(count: number): Float32Array {
     new THREE.Color(0x67d9ff),
     new THREE.Color(0xffc46b),
     new THREE.Color(0xffffff)
+  ];
+
+  for (let index = 0; index < count; index += 1) {
+    const color = palette[index % palette.length];
+    colors[index * 3] = color.r;
+    colors[index * 3 + 1] = color.g;
+    colors[index * 3 + 2] = color.b;
+  }
+
+  return colors;
+}
+
+function createPlumeColors(count: number): Float32Array {
+  const colors = new Float32Array(count * 3);
+  const palette = [
+    new THREE.Color(0xffffff),
+    new THREE.Color(0xcff8ff),
+    new THREE.Color(0x7fe9ff),
+    new THREE.Color(0xffd29a)
   ];
 
   for (let index = 0; index < count; index += 1) {
@@ -200,6 +263,37 @@ function updateStars(stars: THREE.Points, points: StarPoint[], time: number, sta
     positions.setXYZ(index, x, y, z);
   });
 
+  positions.needsUpdate = true;
+}
+
+function updatePlume(
+  plume: THREE.Points,
+  points: PlumePoint[],
+  time: number,
+  length: number,
+  spread: number,
+  opacity: number
+): void {
+  const positions = plume.geometry.getAttribute("position") as THREE.BufferAttribute;
+  const material = plume.material as THREE.PointsMaterial;
+  const plumeDepth = 2.8 + length * 5.8;
+  const plumeWidth = 0.12 + spread * 0.42;
+
+  points.forEach((point, index) => {
+    const stream = (point.radius + time * point.speed * 0.16) % 1;
+    const taper = Math.pow(1 - stream, 1.7);
+    const pulse = Math.sin(time * (1.6 + point.lane * 0.18) + point.drift) * 0.08;
+    const radius = (0.05 + point.lane * 0.018 + stream * plumeWidth) * (0.74 + taper * 0.68 + pulse);
+    const angle = point.angle + time * (0.36 + point.lane * 0.025) + stream * 1.1;
+    const x = Math.cos(angle) * radius;
+    const y = -stream * plumeDepth + Math.sin(point.drift + time * 2.1) * 0.035;
+    const z = -stream * 1.65 + Math.sin(angle * 1.4) * 0.08;
+
+    positions.setXYZ(index, x, y, z);
+  });
+
+  material.opacity = Math.min(0.46, 0.08 + opacity * 0.38);
+  material.size = 0.026 + spread * 0.034;
   positions.needsUpdate = true;
 }
 
@@ -312,15 +406,17 @@ function updateBeam(beam: THREE.Mesh, time: number, opacity: number): void {
   material.opacity = opacity * 0.18;
 }
 
-function syncHeroLaunchVars(hero: HTMLElement | null, rocketAura: number, beamOpacity: number): void {
+function syncHeroLaunchVars(hero: HTMLElement | null, rocketAura: number, beamOpacity: number, plumeLength: number): void {
   if (!hero) return;
   hero.style.setProperty("--launch-tunnel-intensity", rocketAura.toFixed(3));
   hero.style.setProperty("--launch-beam-opacity", beamOpacity.toFixed(3));
+  hero.style.setProperty("--launch-plume-length", plumeLength.toFixed(3));
 }
 
 function clearHeroLaunchVars(hero: HTMLElement | null): void {
   hero?.style.removeProperty("--launch-tunnel-intensity");
   hero?.style.removeProperty("--launch-beam-opacity");
+  hero?.style.removeProperty("--launch-plume-length");
 }
 
 function disposeObject(object: THREE.Object3D): void {
