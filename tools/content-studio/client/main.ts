@@ -5,14 +5,21 @@ import {
   ExternalLink,
   FileText,
   FolderKanban,
+  Code2,
+  Heading2,
   Image,
   ListFilter,
+  List,
+  ListChecks,
   Plus,
+  Quote,
   RefreshCw,
   RotateCcw,
   Save,
   Search,
+  Table2,
   Trash2,
+  Video,
   X,
   createElement,
   type IconNode
@@ -76,17 +83,24 @@ const iconNodes = {
   "alert-circle": AlertCircle,
   "book-open-text": BookOpenText,
   "check-circle-2": CheckCircle2,
+  code: Code2,
   "external-link": ExternalLink,
   "file-text": FileText,
   "folder-kanban": FolderKanban,
+  heading: Heading2,
   image: Image,
+  list: List,
+  "list-checks": ListChecks,
   "list-filter": ListFilter,
   plus: Plus,
+  quote: Quote,
   "refresh-cw": RefreshCw,
   "rotate-ccw": RotateCcw,
   save: Save,
   search: Search,
+  table: Table2,
   trash: Trash2,
+  video: Video,
   x: X
 } satisfies Record<string, IconNode>;
 
@@ -204,7 +218,17 @@ app.innerHTML = `
             <label for="markdownSource">Markdown</label>
             <span id="markdownStats"></span>
           </div>
+          <div class="markdown-toolbar" id="markdownToolbar" aria-label="Markdown 快捷插入">
+            <button type="button" data-markdown-action="heading" title="二级标题">${icon("heading")}<span>标题</span></button>
+            <button type="button" data-markdown-action="list" title="无序列表">${icon("list")}<span>列表</span></button>
+            <button type="button" data-markdown-action="tasks" title="任务列表">${icon("list-checks")}<span>任务</span></button>
+            <button type="button" data-markdown-action="code" title="代码块">${icon("code")}<span>代码</span></button>
+            <button type="button" data-markdown-action="callout" title="提示块">${icon("quote")}<span>提示</span></button>
+            <button type="button" data-markdown-action="table" title="表格">${icon("table")}<span>表格</span></button>
+            <button type="button" data-markdown-action="video" title="视频块">${icon("video")}<span>视频</span></button>
+          </div>
           <textarea id="markdownSource" spellcheck="false"></textarea>
+          <p class="markdown-drop-hint">拖拽图片、GIF、SVG、MP4 或 WebM 到编辑区，会自动上传并插入到光标位置。</p>
         </div>
       </section>
 
@@ -321,6 +345,11 @@ function bindControls(): void {
     const input = event.currentTarget as HTMLInputElement;
     void uploadAssets(input.files);
     input.value = "";
+  });
+  document.querySelector("#markdownToolbar")?.addEventListener("click", (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-markdown-action]");
+    if (!button) return;
+    insertMarkdownTemplate(button.dataset.markdownAction || "");
   });
   document.querySelector("#createCloseButton")?.addEventListener("click", closeCreateDialog);
   document.querySelector("#createCancelButton")?.addEventListener("click", closeCreateDialog);
@@ -615,11 +644,12 @@ async function loadAssets(detail: ContentDetail): Promise<void> {
   }
 }
 
-async function uploadAssets(files: FileList | null): Promise<void> {
-  if (!state.selected || !files?.length || state.uploadingAsset) return;
+async function uploadAssets(files: FileList | File[] | null, options: { insertIntoMarkdown?: boolean } = {}): Promise<AssetItem[]> {
+  const uploadedAssets: AssetItem[] = [];
+  if (!state.selected || !files?.length || state.uploadingAsset) return uploadedAssets;
   state.uploadingAsset = true;
   updateAssetUploadState();
-  setSaveMessage("正在上传素材...");
+  setSaveMessage(options.insertIntoMarkdown ? "正在上传并插入素材..." : "正在上传素材...");
 
   try {
     for (const file of Array.from(files)) {
@@ -637,15 +667,22 @@ async function uploadAssets(files: FileList | null): Promise<void> {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error?.message || "素材上传失败");
       state.assets = payload.assets;
+      if (payload.asset) uploadedAssets.push(payload.asset);
     }
     renderAssets();
-    setSaveMessage("素材已上传。可以插入正文，或加入项目图集。");
+    if (options.insertIntoMarkdown) {
+      uploadedAssets.forEach((asset) => insertAssetIntoMarkdown(asset));
+      setSaveMessage("素材已上传并插入正文，保存后写入 Markdown。");
+    } else {
+      setSaveMessage("素材已上传。可以插入正文，或加入项目图集。");
+    }
   } catch (error) {
     setSaveMessage(error instanceof Error ? error.message : "素材上传失败", true);
   } finally {
     state.uploadingAsset = false;
     updateAssetUploadState();
   }
+  return uploadedAssets;
 }
 
 async function deleteAsset(asset: AssetItem): Promise<void> {
@@ -690,6 +727,20 @@ function renderEditor(): void {
     if (!state.selected) return;
     state.selected.markdown = source.value;
     markDirty();
+  };
+  source.ondragover = (event) => {
+    if (!event.dataTransfer?.files.length) return;
+    event.preventDefault();
+    source.classList.add("drag-over");
+  };
+  source.ondragleave = () => {
+    source.classList.remove("drag-over");
+  };
+  source.ondrop = (event) => {
+    if (!event.dataTransfer?.files.length) return;
+    event.preventDefault();
+    source.classList.remove("drag-over");
+    void uploadAssets(event.dataTransfer.files, { insertIntoMarkdown: true });
   };
   updateMarkdownStats();
 }
@@ -1008,6 +1059,21 @@ function detachDeletedAssetReferences(assetUrl: string): void {
     syncSelectedSummary();
     markDirty();
   }
+}
+
+function insertMarkdownTemplate(action: string): void {
+  const templates: Record<string, string> = {
+    heading: "## 新小节\n\n这里写这一节的结论、背景或操作步骤。",
+    list: "- 要点 1\n- 要点 2\n- 要点 3",
+    tasks: "- [ ] 待办 1\n- [ ] 待办 2\n- [x] 已完成示例",
+    code: "```ts\n// 在这里粘贴代码\nconsole.log(\"hello\");\n```",
+    callout: "::: tip 标题\n这里写提示、经验或注意事项。\n:::",
+    table: "| 项目 | 说明 |\n| --- | --- |\n| 示例 | 描述内容 |",
+    video: "```video\nsrc: /videos/projects/example/demo.mp4\ncaption: 演示视频\nautoplay: false\nloop: false\nmuted: false\n```"
+  };
+  const snippet = templates[action];
+  if (!snippet) return;
+  insertMarkdownSnippet(snippet);
 }
 
 function insertMarkdownSnippet(snippet: string): void {

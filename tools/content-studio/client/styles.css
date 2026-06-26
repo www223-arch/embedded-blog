@@ -739,6 +739,42 @@ svg {
   font-size: 0.68rem;
 }
 
+.markdown-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 8px;
+  border: 1px solid #d8dee7;
+  border-radius: 8px;
+  background: #f2f6fa;
+}
+
+.markdown-toolbar button {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ccd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  padding: 0 9px;
+  font-size: 0.72rem;
+}
+
+.markdown-toolbar button:hover {
+  border-color: #9db6d8;
+  background: #edf4ff;
+  color: #175db8;
+}
+
+.markdown-toolbar svg {
+  width: 14px;
+  height: 14px;
+}
+
 #markdownSource {
   min-height: 480px;
   resize: none;
@@ -747,6 +783,21 @@ svg {
   font-size: 0.78rem;
   line-height: 1.65;
   tab-size: 2;
+}
+
+#markdownSource.drag-over {
+  border-color: #1769e0;
+  background:
+    linear-gradient(rgba(23, 105, 224, 0.055), rgba(23, 105, 224, 0.055)),
+    #fff;
+  box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.14);
+}
+
+.markdown-drop-hint {
+  margin: 8px 0 0;
+  color: #7b8798;
+  font-size: 0.7rem;
+  line-height: 1.5;
 }
 
 .preview-pane {

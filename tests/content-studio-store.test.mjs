@@ -15,13 +15,21 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const store = createContentStore(rootDir);
 
 test("content store lists all three content types including archived entries", async () => {
-  const items = await store.list();
-  assert.ok(items.some((item) => item.type === "docs"));
-  assert.ok(items.some((item) => item.type === "projects"));
-  assert.ok(items.some((item) => item.type === "life"));
-  assert.ok(items.some((item) => item.status === "archived"));
-  assert.equal(items.at(-1)?.status, "archived");
-  assert.equal(items.find((item) => item.id === "edge-gateway")?.category, "maintained");
+  const tempRoot = await createTempRoot();
+  try {
+    await writeListFixtureContent(tempRoot);
+    const tempStore = createContentStore(tempRoot);
+    const items = await tempStore.list();
+
+    assert.ok(items.some((item) => item.type === "docs"));
+    assert.ok(items.some((item) => item.type === "projects"));
+    assert.ok(items.some((item) => item.type === "life"));
+    assert.ok(items.some((item) => item.status === "archived"));
+    assert.equal(items.at(-1)?.status, "archived");
+    assert.equal(items.find((item) => item.id === "fixture-project")?.category, "maintained");
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 });
 
 test("content store returns parsed frontmatter and markdown for a known document", async () => {
@@ -167,4 +175,42 @@ Original body.
     "utf8"
   );
   return tempRoot;
+}
+
+async function writeListFixtureContent(rootDir) {
+  await mkdir(path.join(rootDir, "docs-vitepress/projects"), { recursive: true });
+  await mkdir(path.join(rootDir, "docs-vitepress/life"), { recursive: true });
+
+  await Promise.all([
+    writeFile(
+      path.join(rootDir, "docs-vitepress/projects/fixture-project.md"),
+      `---
+id: fixture-project
+title: Fixture Project
+status: published
+projectStage: maintained
+updatedAt: 2026-06-25
+summary: Fixture project.
+---
+
+# Fixture Project
+`,
+      "utf8"
+    ),
+    writeFile(
+      path.join(rootDir, "docs-vitepress/life/fixture-life.md"),
+      `---
+id: fixture-life
+title: Fixture Life
+status: archived
+tag: Life
+date: 2026-06-25
+summary: Fixture life post.
+---
+
+# Fixture Life
+`,
+      "utf8"
+    )
+  ]);
 }
