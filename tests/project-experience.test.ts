@@ -5,6 +5,7 @@ import { selectProjectExperience } from "../src/features/projects/experience.ts"
 import { buildProjectChapters } from "../src/features/projects/immersive/view.ts";
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
+import { getActiveChapterIndex, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
 
 test("project experience uses the ordinary shell by default", () => {
   assert.equal(selectProjectExperience({ presentation: "standard" }), "standard");
@@ -56,6 +57,14 @@ test("signal orbit state gives the active investigation a stronger signal", () =
 
 test("signal orbit renderer caps pixel ratio and keeps canvas decorative", () => {
   assert.deepEqual(getSignalOrbitRendererConfig(3), { pixelRatio: 1.5, ariaHidden: "true" });
+});
+
+test("reader state resolves the most visible chapter", () => {
+  assert.equal(getActiveChapterIndex([0.1, 0.68, 0.31]), 1);
+});
+
+test("evidence return target is stable per chapter", () => {
+  assert.equal(getEvidenceReturnTargetId("chapter-03"), "evidence-chapter-03");
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {

@@ -13,7 +13,6 @@ type SignalOrbitRendererConfig = {
 };
 
 const STAR_COUNT = 180;
-const sceneBackground = new THREE.Color(0x050913);
 
 export function getSignalOrbitRendererConfig(devicePixelRatio: number): SignalOrbitRendererConfig {
   return { pixelRatio: Math.min(devicePixelRatio || 1, 1.5), ariaHidden: "true" };
@@ -26,7 +25,6 @@ export function mountSignalOrbitScene(host: HTMLElement, chapters: ProjectChapte
   if (!renderer) return undefined;
 
   const scene = new THREE.Scene();
-  scene.background = sceneBackground;
   const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 40);
   const world = new THREE.Group();
   const anchors = createAnchors(chapters);

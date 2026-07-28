@@ -5,6 +5,8 @@ import { mountHomeParticles } from "../features/home/fx";
 import { mountScrollEffect } from "../features/home/scrollEffect";
 import { renderDocs, bindDocFilter } from "../features/docs/view";
 import { renderProjects, bindProjectClick } from "../features/projects/view";
+import { renderProjectExperience, selectProjectExperience } from "../features/projects/experience";
+import { mountImmersiveProjectExperience } from "../features/projects/immersive/motion";
 import { renderLife, bindLifeFilter } from "../features/life/view";
 import { renderBoard, mountBoard } from "../features/board/view";
 import { renderPlayground } from "../features/playground/view";
@@ -126,7 +128,7 @@ function renderRoute(routeInfo: { route: RouteKey; params: RouteParams }): void 
   if (!view || !sidebarContainer) return;
 
   if (route === "project-detail" && params.id) {
-    renderProjectDetail(params.id);
+    renderProjectDetail(params.id, currentRunId);
     if (quickBackBtn) quickBackBtn.style.display = "inline-flex";
   } else if (route === "life-detail" && params.id) {
     renderLifeDetail(params.id);
@@ -208,7 +210,7 @@ function registerMountResult(result: FeatureMountResult | undefined, runId: numb
   });
 }
 
-function renderProjectDetail(projectId: string): void {
+function renderProjectDetail(projectId: string, runId: number): void {
   const project = projectItems.find((item) => item.id === projectId);
   const view = document.getElementById("view");
   const sidebarContainer = document.getElementById("sidebarContainer");
@@ -216,10 +218,11 @@ function renderProjectDetail(projectId: string): void {
 
   const base = import.meta.env.BASE_URL;
   const theme = document.documentElement.getAttribute("data-theme") || "light";
-  view.className = "project-detail";
+  const immersive = selectProjectExperience(project) === "immersive";
+  view.className = immersive ? "project-detail project-detail-immersive" : "project-detail";
   sidebarContainer.innerHTML = "";
   document.title = `Embedded Blog | ${project.title}`;
-  view.innerHTML = detailPage("project-detail-page", theme, `${base}xiangmuzuopingbaitian.jpg`, `${base}xiangmuzuopingheitian.jpg`, renderDocumentShell({
+  const renderStandardProject = () => renderDocumentShell({
     eyebrow: "Project",
     title: project.title,
     summary: project.summary,
@@ -235,7 +238,24 @@ function renderProjectDetail(projectId: string): void {
     })),
     actions: project.links,
     contentClass: "project-content"
-  }));
+  });
+
+  view.innerHTML = detailPage(
+    immersive ? "project-detail-page immersive-project-page" : "project-detail-page",
+    theme,
+    `${base}xiangmuzuopingbaitian.jpg`,
+    `${base}xiangmuzuopingheitian.jpg`,
+    renderProjectExperience(project, renderStandardProject)
+  );
+
+  if (immersive) {
+    animateViewEnter(view);
+    lazyLoadBackgrounds();
+    window.scrollTo(0, 0);
+    registerMountResult(mountImmersiveProjectExperience(view, project), runId);
+    return;
+  }
+
   mountDetailView(view);
 }
 

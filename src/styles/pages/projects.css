@@ -351,3 +351,356 @@
     padding: 20px;
   }
 }
+
+/* Immersive project detail keeps the global project shell and adds depth only inside its content area. */
+.immersive-project-page {
+  overflow: visible;
+}
+
+.immersive-project {
+  position: relative;
+  width: min(1180px, calc(100% - 48px));
+  min-height: 100vh;
+  margin: 96px auto 72px;
+  padding: 34px 34px 56px;
+  border: 1px solid rgba(217, 232, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(7, 14, 28, 0.58);
+  box-shadow: 0 24px 72px rgba(2, 7, 20, 0.28);
+  isolation: isolate;
+  overflow: clip;
+}
+
+.immersive-project::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(120deg, rgba(9, 20, 39, 0.72), rgba(15, 22, 39, 0.3));
+  pointer-events: none;
+}
+
+.immersive-project-scene {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  opacity: 0.88;
+  background: radial-gradient(circle at 58% 27%, rgba(121, 224, 191, 0.12), transparent 26%);
+}
+
+.immersive-project-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.immersive-project-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px 28px;
+  max-width: 720px;
+  padding: 26px 0 58px;
+}
+
+.immersive-project-kicker,
+.immersive-project-eyebrow,
+.immersive-project-status {
+  color: #e6b56c;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.immersive-project-count {
+  margin: 0;
+  color: rgba(230, 240, 255, 0.68);
+  font-size: 12px;
+}
+
+.immersive-project-count b {
+  color: #79e0bf;
+}
+
+.immersive-project-hero h1 {
+  grid-column: 1 / -1;
+  max-width: 760px;
+  margin: 0;
+  color: #f1f6ff;
+  font-size: clamp(38px, 5.3vw, 70px);
+  line-height: 1.03;
+  text-shadow: 0 10px 30px rgba(3, 9, 22, 0.48);
+}
+
+.immersive-project-hero > p:not(.immersive-project-count) {
+  grid-column: 1 / -1;
+  max-width: 650px;
+  margin: 0;
+  color: rgba(224, 234, 250, 0.86);
+  line-height: 1.8;
+}
+
+.immersive-project-focus {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  width: fit-content;
+  padding: 10px 12px;
+  border-left: 2px solid #79e0bf;
+  background: rgba(7, 18, 26, 0.48);
+}
+
+.immersive-project-focus span {
+  color: rgba(220, 232, 249, 0.65);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.immersive-project-focus strong {
+  color: #eaf8f2;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.immersive-project-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(150px, 0.24fr) minmax(0, 0.76fr);
+  gap: 38px;
+}
+
+.immersive-project-rail {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  display: grid;
+  gap: 2px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(212, 228, 255, 0.22);
+}
+
+.immersive-project-rail-item {
+  display: grid;
+  gap: 5px;
+  min-height: 52px;
+  padding: 9px 8px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: rgba(224, 234, 250, 0.62);
+  cursor: pointer;
+  text-align: left;
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.immersive-project-rail-item:hover,
+.immersive-project-rail-item[aria-current="step"] {
+  border-left-color: #79e0bf;
+  color: #f2f8ff;
+  transform: translateX(3px);
+}
+
+.immersive-project-rail-item span {
+  color: #e6b56c;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.immersive-project-rail-item b {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.immersive-project-reader {
+  display: grid;
+  gap: 84px;
+  padding-bottom: 80px;
+}
+
+.immersive-project-chapter {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  min-height: 54vh;
+  align-items: center;
+  gap: 20px;
+  scroll-margin-top: 110px;
+}
+
+.immersive-project-chapter-index {
+  align-self: start;
+  padding-top: 34px;
+  color: rgba(226, 237, 255, 0.5);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.immersive-project-chapter-copy {
+  padding: 31px 34px;
+  border: 1px solid rgba(213, 229, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(10, 18, 34, 0.63);
+  box-shadow: 16px 22px 46px rgba(3, 8, 20, 0.22);
+  backdrop-filter: blur(12px);
+}
+
+.immersive-project-chapter-copy::before {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-bottom: 19px;
+  border-radius: 50%;
+  background: #e6b56c;
+  box-shadow: 0 0 18px rgba(230, 181, 108, 0.66);
+}
+
+.immersive-project-chapter.status-current .immersive-project-status,
+.immersive-project-chapter.status-current .immersive-project-eyebrow {
+  color: #79e0bf;
+}
+
+.immersive-project-chapter.status-current .immersive-project-chapter-copy::before {
+  background: #79e0bf;
+  box-shadow: 0 0 18px rgba(121, 224, 191, 0.72);
+}
+
+.immersive-project-chapter.status-future .immersive-project-status,
+.immersive-project-chapter.status-future .immersive-project-eyebrow,
+.immersive-project-chapter.status-open .immersive-project-status,
+.immersive-project-chapter.status-open .immersive-project-eyebrow {
+  color: #b7a0ff;
+}
+
+.immersive-project-chapter.status-future .immersive-project-chapter-copy::before,
+.immersive-project-chapter.status-open .immersive-project-chapter-copy::before {
+  background: #b7a0ff;
+  box-shadow: 0 0 18px rgba(183, 160, 255, 0.72);
+}
+
+.immersive-project-eyebrow {
+  margin: 9px 0 12px;
+}
+
+.immersive-project-chapter h2 {
+  margin: 0 0 16px;
+  color: #f1f6ff;
+  font-size: clamp(27px, 3.5vw, 43px);
+  line-height: 1.14;
+}
+
+.immersive-project-body {
+  color: rgba(224, 234, 250, 0.84);
+  line-height: 1.82;
+}
+
+.immersive-project-body > :first-child {
+  margin-top: 0;
+}
+
+.immersive-project-body > :last-child {
+  margin-bottom: 0;
+}
+
+.immersive-project-evidence,
+.immersive-project-evidence-close {
+  margin-top: 22px;
+  padding: 9px 12px;
+  border: 1px solid rgba(121, 224, 191, 0.62);
+  border-radius: 6px;
+  background: rgba(12, 38, 40, 0.52);
+  color: #e9fff7;
+  cursor: pointer;
+}
+
+.immersive-project-evidence:hover,
+.immersive-project-evidence-close:hover {
+  background: rgba(37, 92, 81, 0.62);
+}
+
+.immersive-project-evidence-dialog {
+  width: min(860px, calc(100% - 30px));
+  max-height: min(82vh, 780px);
+  padding: 0;
+  border: 1px solid rgba(213, 229, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(8, 15, 29, 0.96);
+  color: #eff6ff;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+}
+
+.immersive-project-evidence-dialog::backdrop {
+  background: rgba(2, 6, 15, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+.immersive-project-evidence-panel {
+  padding: 26px;
+}
+
+.immersive-project-evidence-panel h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+}
+
+.immersive-project-evidence-panel img,
+.immersive-project-evidence-panel video {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  background: #050913;
+}
+
+@media (max-width: 759px), (prefers-reduced-motion: reduce) {
+  .immersive-project {
+    width: min(100% - 28px, 720px);
+    margin-top: 76px;
+    padding: 24px 20px 46px;
+  }
+
+  .immersive-project-scene {
+    display: none;
+  }
+
+  .immersive-project-layout {
+    display: block;
+  }
+
+  .immersive-project-rail {
+    position: static;
+    grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+    margin-bottom: 34px;
+    padding: 0 0 10px;
+    border: 0;
+    border-bottom: 1px solid rgba(212, 228, 255, 0.22);
+  }
+
+  .immersive-project-rail-item {
+    min-height: auto;
+  }
+
+  .immersive-project-reader {
+    gap: 48px;
+    padding-bottom: 20px;
+  }
+
+  .immersive-project-chapter {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 10px;
+  }
+
+  .immersive-project-chapter-index {
+    padding: 0;
+  }
+
+  .immersive-project-chapter-copy {
+    padding: 25px 22px;
+  }
+}
