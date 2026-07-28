@@ -62,12 +62,19 @@ test("content store creates a draft and matching image directory", async () => {
     assert.equal(result.item.type, "projects");
     assert.equal(result.item.status, "draft");
     assert.equal(result.item.projectStage, "building");
+    assert.equal(result.item.frontmatter.presentation, "standard");
+    assert.equal(result.item.frontmatter.narrative, "chronicle");
+    assert.equal(result.item.frontmatter.visualPreset, "orbit");
+    assert.equal(result.item.frontmatter.currentFocus, "");
     assert.deepEqual(result.item.tags, ["STM32", "FreeRTOS", "PID"]);
     assert.equal(result.paths.markdown, "docs-vitepress/projects/studio-new-project.md");
     assert.equal(result.paths.images, "public/images/projects/studio-new-project");
 
     const saved = await readFile(path.join(tempRoot, "docs-vitepress/projects/studio-new-project.md"), "utf8");
     assert.match(saved, /projectStage: building/);
+    assert.match(saved, /presentation: standard/);
+    assert.match(saved, /narrative: chronicle/);
+    assert.match(saved, /visualPreset: orbit/);
     assert.match(saved, /# Studio New Project/);
 
     const keepFile = await readFile(path.join(tempRoot, "public/images/projects/studio-new-project/.gitkeep"), "utf8");

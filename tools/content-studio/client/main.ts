@@ -241,6 +241,9 @@ app.innerHTML = `
             <button type="button" data-markdown-action="callout" title="提示块">${icon("quote")}<span>提示</span></button>
             <button type="button" data-markdown-action="table" title="表格">${icon("table")}<span>表格</span></button>
             <button type="button" data-markdown-action="video" title="视频块">${icon("video")}<span>视频</span></button>
+            <button type="button" data-markdown-action="milestone" title="阶段成果">${icon("check-circle-2")}<span>阶段</span></button>
+            <button type="button" data-markdown-action="question" title="开放问题">${icon("alert-circle")}<span>问题</span></button>
+            <button type="button" data-markdown-action="next" title="下一步">${icon("external-link")}<span>下一步</span></button>
           </div>
           <textarea id="markdownSource" spellcheck="false"></textarea>
           <p class="markdown-drop-hint">拖拽图片、GIF、SVG、MP4 或 WebM 到编辑区，会自动上传并插入到光标位置。</p>
@@ -1230,7 +1233,10 @@ function insertMarkdownTemplate(action: string): void {
     code: "```ts\n// 在这里粘贴代码\nconsole.log(\"hello\");\n```",
     callout: "::: tip 标题\n这里写提示、经验或注意事项。\n:::",
     table: "| 项目 | 说明 |\n| --- | --- |\n| 示例 | 描述内容 |",
-    video: "```video\nsrc: /videos/projects/example/demo.mp4\ncaption: 演示视频\nautoplay: false\nloop: false\nmuted: false\n```"
+    video: "```video\nsrc: /videos/projects/example/demo.mp4\ncaption: 演示视频\nautoplay: false\nloop: false\nmuted: false\n```",
+    milestone: "```milestone\ndate: 2026-07-28\ntitle: 阶段成果\nstatus: current\nmedia: /images/projects/project-id/progress.gif\n```\n写下这一步带来的变化。",
+    question: "```question\ntitle: 仍在思考\nstate: open\n```\n写下还没有答案的问题。",
+    next: "```next\ntitle: 下一步\n```\n写下准备继续推进的方向。"
   };
   const snippet = templates[action];
   if (!snippet) return;
@@ -1377,6 +1383,11 @@ function metadataFor(detail: ContentDetail): FieldDef[] {
     return [
       ...common,
       { key: "projectStage", label: "项目阶段", kind: "select", options: ["concept", "building", "completed", "maintained", "paused"] },
+      { key: "presentation", label: "展示方式", kind: "select", options: ["standard", "immersive"] },
+      { key: "narrative", label: "叙事方式", kind: "select", options: ["chronicle", "field-notes", "chapters"] },
+      { key: "visualPreset", label: "空间预设", kind: "select", options: ["orbit", "signal", "archive"] },
+      { key: "updatedAt", label: "最近更新", kind: "text" },
+      { key: "currentFocus", label: "当前焦点", kind: "textarea", wide: true },
       { key: "period", label: "周期", kind: "text" },
       { key: "role", label: "角色", kind: "text" },
       { key: "stack", label: "技术栈", kind: "csv", wide: true },
@@ -1414,6 +1425,10 @@ function validateDetail(detail: ContentDetail): string[] {
   if (!detail.summary.trim()) issues.push("摘要为空");
   if (!detail.markdown.trim()) issues.push("正文为空");
   if (detail.type === "projects" && !detail.projectStage) issues.push("项目阶段未填写");
+  if (detail.type === "projects" && valueAsString(detail.frontmatter.presentation) === "immersive") {
+    if (!valueAsString(detail.frontmatter.updatedAt).trim()) issues.push("沉浸项目需要填写最近更新");
+    if (!valueAsString(detail.frontmatter.currentFocus).trim()) issues.push("沉浸项目需要填写当前焦点");
+  }
   if (detail.status === "draft") issues.push("当前内容是草稿，不会进入生产构建");
   if (detail.status === "archived") issues.push("当前内容已归档，不会在主站显示");
   return issues;

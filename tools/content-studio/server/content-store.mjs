@@ -279,7 +279,12 @@ function createDraftFrontmatter(type, draft) {
       role: "Embedded Developer",
       period: String(new Date().getFullYear()),
       status: "draft",
-      projectStage: valueAsProjectStage(draft.projectStage || "building")
+      projectStage: valueAsProjectStage(draft.projectStage || "building"),
+      presentation: "standard",
+      narrative: "chronicle",
+      visualPreset: "orbit",
+      updatedAt: draft.date,
+      currentFocus: ""
     };
   }
 
