@@ -3,6 +3,7 @@ import test from "node:test";
 import type { ProjectItem } from "../src/content/schema.ts";
 import { selectProjectExperience } from "../src/features/projects/experience.ts";
 import { buildProjectChapters } from "../src/features/projects/immersive/view.ts";
+import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 
 test("project experience uses the ordinary shell by default", () => {
   assert.equal(selectProjectExperience({ presentation: "standard" }), "standard");
@@ -30,6 +31,26 @@ test("immersive chapters supply a readable overview when milestones are absent",
   assert.equal(chapter.title, "FOC control research");
   assert.equal(chapter.body, "A readable fallback summary.");
   assert.equal(chapter.status, "current");
+});
+
+test("signal orbit state clamps to the last available chapter", () => {
+  const state = createSignalOrbitState(buildProjectChapters(projectWith([
+    { type: "milestone", date: "", title: "Past", status: "past", media: "", body: "" },
+    { type: "milestone", date: "", title: "Current", status: "current", media: "", body: "" },
+    { type: "milestone", date: "", title: "Future", status: "future", media: "", body: "" }
+  ])), 99);
+
+  assert.equal(state.activeIndex, 2);
+  assert.equal(state.signalColor, 0xb7a0ff);
+});
+
+test("signal orbit state gives the active investigation a stronger signal", () => {
+  const chapters = buildProjectChapters(projectWith([
+    { type: "milestone", date: "", title: "Past", status: "past", media: "", body: "" },
+    { type: "milestone", date: "", title: "Current", status: "current", media: "", body: "" }
+  ]));
+
+  assert.ok(createSignalOrbitState(chapters, 1).signalStrength > createSignalOrbitState(chapters, 0).signalStrength);
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {
