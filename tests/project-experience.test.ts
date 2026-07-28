@@ -4,6 +4,7 @@ import type { ProjectItem } from "../src/content/schema.ts";
 import { selectProjectExperience } from "../src/features/projects/experience.ts";
 import { buildProjectChapters } from "../src/features/projects/immersive/view.ts";
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
+import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
 
 test("project experience uses the ordinary shell by default", () => {
   assert.equal(selectProjectExperience({ presentation: "standard" }), "standard");
@@ -51,6 +52,10 @@ test("signal orbit state gives the active investigation a stronger signal", () =
   ]));
 
   assert.ok(createSignalOrbitState(chapters, 1).signalStrength > createSignalOrbitState(chapters, 0).signalStrength);
+});
+
+test("signal orbit renderer caps pixel ratio and keeps canvas decorative", () => {
+  assert.deepEqual(getSignalOrbitRendererConfig(3), { pixelRatio: 1.5, ariaHidden: "true" });
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {
