@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { parseMarkdownSource, stringifyMarkdownSource } from "../src/content-core/frontmatter.ts";
 import { renderMarkdown } from "../src/content-core/markdown.ts";
+import * as markdownCore from "../src/content-core/markdown.ts";
 import { shouldIncludeContent } from "../src/content-core/model.ts";
 import { projectSchema } from "../src/content/schema.ts";
 
@@ -56,6 +57,7 @@ test("project presentation fields default to the ordinary project experience", (
   assert.equal(project.visualPreset, "orbit");
   assert.equal(project.updatedAt, "");
   assert.equal(project.currentFocus, "");
+  assert.deepEqual(project.narrativeBlocks, []);
 });
 
 test("project presentation rejects unsupported visual presets", () => {
@@ -74,6 +76,131 @@ test("project presentation rejects unsupported visual presets", () => {
     })
   );
 });
+
+test("narrative blocks preserve source order and safe media", () => {
+  const parseNarrativeBlocks = getNarrativeParser();
+  const blocks = parseNarrativeBlocks(
+    [
+      "```milestone",
+      "date: 2026-07-28",
+      "title: Diff preview",
+      "status: current",
+      "media: /images/projects/content-studio/diff.gif",
+      "```",
+      "Saved work.",
+      "",
+      "```question",
+      "title: Open question",
+      "state: open",
+      "```",
+      "How much structure is enough?",
+      "",
+      "```next",
+      "title: Next step",
+      "```",
+      "Build the chapter rail."
+    ].join("\n")
+  );
+
+  assert.deepEqual(blocks.map((block) => block.type), ["milestone", "question", "next"]);
+  assert.deepEqual(blocks[0], {
+    type: "milestone",
+    date: "2026-07-28",
+    title: "Diff preview",
+    status: "current",
+    media: "/images/projects/content-studio/diff.gif",
+    body: "Saved work."
+  });
+  assert.deepEqual(blocks[1], {
+    type: "question",
+    title: "Open question",
+    state: "open",
+    body: "How much structure is enough?"
+  });
+  assert.deepEqual(blocks[2], {
+    type: "next",
+    title: "Next step",
+    body: "Build the chapter rail."
+  });
+});
+
+test("narrative blocks reject unsafe media and malformed metadata", () => {
+  const parseNarrativeBlocks = getNarrativeParser();
+  const blocks = parseNarrativeBlocks(
+    [
+      "```milestone",
+      "title: Unsafe",
+      "status: unexpected",
+      "media: /images/../secret.gif",
+      "```",
+      "This block stays readable.",
+      "",
+      "```question",
+      "title: [",
+      "```",
+      "Broken metadata is ignored."
+    ].join("\n")
+  );
+
+  assert.deepEqual(blocks, [
+    {
+      type: "milestone",
+      date: "",
+      title: "Unsafe",
+      status: "past",
+      media: "",
+      body: "This block stays readable."
+    }
+  ]);
+});
+
+test("markdown renders narrative fences as semantic rich blocks", () => {
+  const rendered = renderMarkdown(
+    [
+      "```milestone",
+      "date: 2026-07-28",
+      "title: Diff preview",
+      "status: current",
+      "media: /images/projects/content-studio/diff.gif",
+      "```",
+      "Saved work.",
+      "",
+      "```question",
+      "title: Open question",
+      "state: open",
+      "```",
+      "How much structure is enough?",
+      "",
+      "```next",
+      "title: Next step",
+      "```",
+      "Build the chapter rail."
+    ].join("\n")
+  );
+
+  assert.match(rendered.html, /data-narrative-type="milestone"/);
+  assert.match(rendered.html, /data-narrative-status="current"/);
+  assert.match(rendered.html, /data-narrative-type="question"/);
+  assert.match(rendered.html, /data-narrative-state="open"/);
+  assert.match(rendered.html, /data-narrative-type="next"/);
+  assert.match(rendered.html, /Saved work\./);
+});
+
+type TestNarrativeBlock = {
+  type: string;
+  date?: string;
+  title: string;
+  status?: string;
+  state?: string;
+  media?: string;
+  body: string;
+};
+
+function getNarrativeParser(): (markdown: string) => TestNarrativeBlock[] {
+  const parser = (markdownCore as { parseNarrativeBlocks?: unknown }).parseNarrativeBlocks;
+  assert.equal(typeof parser, "function");
+  return parser as (markdown: string) => TestNarrativeBlock[];
+}
 
 test("markdown rendering produces outline, tables, resolved assets, and safe code", () => {
   const rendered = renderMarkdown(

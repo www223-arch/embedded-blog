@@ -5,6 +5,27 @@ export const projectStageSchema = z.enum(["concept", "building", "completed", "m
 export const projectPresentationSchema = z.enum(["standard", "immersive"]);
 export const projectNarrativeSchema = z.enum(["chronicle", "field-notes", "chapters"]);
 export const projectVisualPresetSchema = z.enum(["orbit", "signal", "archive"]);
+export const narrativeBlockSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("milestone"),
+    date: z.string(),
+    title: z.string(),
+    status: z.enum(["past", "current", "future"]),
+    media: z.string(),
+    body: z.string()
+  }),
+  z.object({
+    type: z.literal("question"),
+    title: z.string(),
+    state: z.enum(["open", "resolved"]),
+    body: z.string()
+  }),
+  z.object({
+    type: z.literal("next"),
+    title: z.string(),
+    body: z.string()
+  })
+]);
 
 export const docSchema = z.object({
   id: z.string(),
@@ -41,6 +62,7 @@ export const projectSchema = z.object({
   visualPreset: projectVisualPresetSchema.default("orbit"),
   updatedAt: z.string().default(""),
   currentFocus: z.string().default(""),
+  narrativeBlocks: z.array(narrativeBlockSchema).default([]),
   markdown: z.string().optional()
 });
 
