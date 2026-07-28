@@ -4,6 +4,15 @@ export type ContentStatus = (typeof contentStatuses)[number];
 export const projectStages = ["concept", "building", "completed", "maintained", "paused"] as const;
 export type ProjectStage = (typeof projectStages)[number];
 
+export const projectPresentations = ["standard", "immersive"] as const;
+export type ProjectPresentation = (typeof projectPresentations)[number];
+
+export const projectNarratives = ["chronicle", "field-notes", "chapters"] as const;
+export type ProjectNarrative = (typeof projectNarratives)[number];
+
+export const projectVisualPresets = ["orbit", "signal", "archive"] as const;
+export type ProjectVisualPreset = (typeof projectVisualPresets)[number];
+
 export type ContentVisibility = "preview" | "production";
 
 export function isContentStatus(value: unknown): value is ContentStatus {

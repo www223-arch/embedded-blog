@@ -2,6 +2,9 @@ import { z } from "zod";
 
 export const contentStatusSchema = z.enum(["draft", "published", "archived"]);
 export const projectStageSchema = z.enum(["concept", "building", "completed", "maintained", "paused"]);
+export const projectPresentationSchema = z.enum(["standard", "immersive"]);
+export const projectNarrativeSchema = z.enum(["chronicle", "field-notes", "chapters"]);
+export const projectVisualPresetSchema = z.enum(["orbit", "signal", "archive"]);
 
 export const docSchema = z.object({
   id: z.string(),
@@ -33,6 +36,11 @@ export const projectSchema = z.object({
   ),
   status: contentStatusSchema,
   projectStage: projectStageSchema,
+  presentation: projectPresentationSchema.default("standard"),
+  narrative: projectNarrativeSchema.default("chronicle"),
+  visualPreset: projectVisualPresetSchema.default("orbit"),
+  updatedAt: z.string().default(""),
+  currentFocus: z.string().default(""),
   markdown: z.string().optional()
 });
 
