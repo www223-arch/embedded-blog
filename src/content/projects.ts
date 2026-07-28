@@ -29,6 +29,11 @@ export const projectItems: ProjectItem[] = loadMarkdownEntries(projectModules)
       links: valueAsLinks(data.links),
       status: valueAsContentStatus(data.status),
       projectStage: valueAsProjectStage(data.projectStage),
+      presentation: valueAsString(data.presentation),
+      narrative: valueAsString(data.narrative),
+      visualPreset: valueAsString(data.visualPreset),
+      updatedAt: valueAsString(data.updatedAt),
+      currentFocus: valueAsString(data.currentFocus),
       markdown: entry.markdown
     });
   });

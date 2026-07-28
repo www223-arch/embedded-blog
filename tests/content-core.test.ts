@@ -3,6 +3,7 @@ import test from "node:test";
 import { parseMarkdownSource, stringifyMarkdownSource } from "../src/content-core/frontmatter.ts";
 import { renderMarkdown } from "../src/content-core/markdown.ts";
 import { shouldIncludeContent } from "../src/content-core/model.ts";
+import { projectSchema } from "../src/content/schema.ts";
 
 test("frontmatter supports nested YAML and round trips without losing the body", () => {
   const source = `---
@@ -35,6 +36,43 @@ test("content visibility keeps drafts local and published content deployable", (
   assert.equal(shouldIncludeContent("published", "production"), true);
   assert.equal(shouldIncludeContent("archived", "preview"), false);
   assert.equal(shouldIncludeContent("archived", "production"), false);
+});
+
+test("project presentation fields default to the ordinary project experience", () => {
+  const project = projectSchema.parse({
+    id: "plain-project",
+    title: "Plain Project",
+    summary: "A project without presentation metadata.",
+    stack: [],
+    highlights: [],
+    gallery: [],
+    links: [],
+    status: "draft",
+    projectStage: "building"
+  });
+
+  assert.equal(project.presentation, "standard");
+  assert.equal(project.narrative, "chronicle");
+  assert.equal(project.visualPreset, "orbit");
+  assert.equal(project.updatedAt, "");
+  assert.equal(project.currentFocus, "");
+});
+
+test("project presentation rejects unsupported visual presets", () => {
+  assert.throws(() =>
+    projectSchema.parse({
+      id: "invalid-project",
+      title: "Invalid Project",
+      summary: "A project with an invalid visual preset.",
+      stack: [],
+      highlights: [],
+      gallery: [],
+      links: [],
+      status: "draft",
+      projectStage: "building",
+      visualPreset: "planet"
+    })
+  );
 });
 
 test("markdown rendering produces outline, tables, resolved assets, and safe code", () => {
