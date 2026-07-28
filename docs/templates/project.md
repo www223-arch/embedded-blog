@@ -19,6 +19,11 @@ role: Embedded Developer
 period: '2026'
 status: draft
 projectStage: building
+presentation: standard
+narrative: chronicle
+visualPreset: orbit
+updatedAt: '2026-07-28'
+currentFocus: ''
 ---
 
 # Project Title
