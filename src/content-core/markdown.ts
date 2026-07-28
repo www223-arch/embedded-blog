@@ -1,5 +1,6 @@
 import MarkdownIt from "markdown-it";
 import { parse as parseYaml } from "yaml";
+export { parseNarrativeBlocks, type NarrativeBlock } from "./narrative.ts";
 
 export type TocItem = {
   id: string;
@@ -92,6 +93,9 @@ export function renderMarkdown(markdown: string, options: MarkdownRenderOptions 
     if (language === "gallery") return renderGalleryBlock(parseRichBlock(token.content), resolveAssetPath);
     if (language === "callout") return renderCalloutBlock(parseRichBlock(token.content));
     if (language === "demo") return renderDemoBlock(parseRichBlock(token.content), resolveAssetPath);
+    if (language === "milestone") return renderNarrativeBlock("milestone", parseRichBlock(token.content), resolveAssetPath);
+    if (language === "question") return renderNarrativeBlock("question", parseRichBlock(token.content), resolveAssetPath);
+    if (language === "next") return renderNarrativeBlock("next", parseRichBlock(token.content), resolveAssetPath);
 
     const rendered = defaultFence
       ? defaultFence(tokens, index, rendererOptions, env, self)
@@ -170,6 +174,33 @@ function renderDemoBlock(data: RichBlockData, resolveAssetPath: (value: string) 
   const height = clampNumber(data.height, 280, 900, 520);
   const allowFullscreen = booleanValue(data.allowFullscreen);
   return `<figure class="doc-rich-block doc-demo"><iframe src="${escapeAttribute(resolveAssetPath(src))}" title="${escapeAttribute(title)}" height="${height}" loading="lazy" sandbox="allow-scripts allow-same-origin" ${allowFullscreen ? "allowfullscreen" : ""}></iframe><figcaption>${escapeHtml(title)}</figcaption></figure>`;
+}
+
+function renderNarrativeBlock(
+  type: "milestone" | "question" | "next",
+  data: RichBlockData,
+  resolveAssetPath: (value: string) => string
+): string {
+  const title = stringValue(data.title);
+  if (!title) return renderRichBlockError("叙事区块需要 title");
+
+  if (type === "milestone") {
+    const rawStatus = stringValue(data.status);
+    const status = rawStatus === "current" || rawStatus === "future" ? rawStatus : "past";
+    const date = stringValue(data.date);
+    const media = localPath(data.media, "/images/") || localPath(data.media, "/videos/");
+    const mediaMarkup = media
+      ? `<a class="doc-narrative-media" href="${escapeAttribute(resolveAssetPath(media))}" target="_blank" rel="noreferrer">View evidence</a>`
+      : "";
+    return `<article class="doc-rich-block doc-narrative-block" data-narrative-type="milestone" data-narrative-status="${status}"><span>${escapeHtml(date)}</span><strong>${escapeHtml(title)}</strong>${mediaMarkup}</article>`;
+  }
+
+  if (type === "question") {
+    const state = stringValue(data.state) === "resolved" ? "resolved" : "open";
+    return `<article class="doc-rich-block doc-narrative-block" data-narrative-type="question" data-narrative-state="${state}"><strong>${escapeHtml(title)}</strong></article>`;
+  }
+
+  return `<article class="doc-rich-block doc-narrative-block" data-narrative-type="next"><strong>${escapeHtml(title)}</strong></article>`;
 }
 
 function renderRichBlockError(message: string): string {

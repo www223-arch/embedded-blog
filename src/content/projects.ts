@@ -1,4 +1,5 @@
 import { projectSchema, type ProjectItem } from "./schema";
+import { parseNarrativeBlocks } from "../content-core/narrative.ts";
 import {
   idFromPath,
   loadMarkdownEntries,
@@ -34,6 +35,7 @@ export const projectItems: ProjectItem[] = loadMarkdownEntries(projectModules)
       visualPreset: valueAsString(data.visualPreset),
       updatedAt: valueAsString(data.updatedAt),
       currentFocus: valueAsString(data.currentFocus),
+      narrativeBlocks: parseNarrativeBlocks(entry.markdown),
       markdown: entry.markdown
     });
   });
