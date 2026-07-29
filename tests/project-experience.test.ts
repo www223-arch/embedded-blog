@@ -6,6 +6,8 @@ import { buildProjectChapters, isMotorLabPreset, renderImmersiveProject } from "
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
 import { getActiveChapterIndex, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
+import { createMotorLabState, isPointerDrag } from "../src/features/projects/immersive/motorLabState.ts";
+import { getSceneModuleKey } from "../src/features/projects/immersive/sceneLoader.ts";
 
 test("project experience uses the ordinary shell by default", () => {
   assert.equal(selectProjectExperience({ presentation: "standard" }), "standard");
@@ -85,6 +87,33 @@ test("signal preset does not inherit motor lab controls", () => {
 
   assert.equal(isMotorLabPreset(project), false);
   assert.doesNotMatch(html, /motor-lab-command/);
+});
+
+test("motor lab state clamps chapters and preserves selected part", () => {
+  const state = createMotorLabState(5, 99, false, "encoder");
+
+  assert.equal(state.activeIndex, 4);
+  assert.equal(state.selectedPart, "encoder");
+});
+
+test("motor lab diagnostic state reveals internals and strengthens ripple", () => {
+  const observing = createMotorLabState(5, 2, false);
+  const diagnostic = createMotorLabState(5, 2, true);
+
+  assert.ok(diagnostic.housingOpacity < observing.housingOpacity);
+  assert.ok(diagnostic.rippleStrength > observing.rippleStrength);
+  assert.ok(diagnostic.cameraZ < observing.cameraZ);
+});
+
+test("motor lab pointer movement distinguishes a click from a drag", () => {
+  assert.equal(isPointerDrag(16), false);
+  assert.equal(isPointerDrag(64), true);
+});
+
+test("immersive scene module keys preserve project-specific presets", () => {
+  assert.equal(getSceneModuleKey("motor-lab"), "motor-lab");
+  assert.equal(getSceneModuleKey("signal"), "signal");
+  assert.equal(getSceneModuleKey("orbit"), "signal");
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {

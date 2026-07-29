@@ -9,3 +9,9 @@ export type ProjectChapter = {
   status: ProjectChapterStatus;
   media: string;
 };
+
+export type ImmersiveSceneController = {
+  setActiveChapter(index: number): void;
+  setDiagnosticMode?(active: boolean): void;
+  dispose(): void;
+};

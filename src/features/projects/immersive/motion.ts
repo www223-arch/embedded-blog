@@ -1,5 +1,6 @@
 import type { ProjectItem } from "../../../content/schema";
 import { buildProjectChapters } from "./view.ts";
+import type { ImmersiveSceneController } from "./types.ts";
 
 export function getActiveChapterIndex(ratios: number[]): number {
   return ratios.reduce((active, ratio, index) => (ratio > ratios[active] ? index : active), 0);
@@ -16,9 +17,13 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   const railItems = [...root.querySelectorAll<HTMLButtonElement>(".immersive-project-rail-item")];
   const chapterRatios = chapters.map(() => 0);
   const indexLabel = root.querySelector<HTMLElement>("#immersiveProjectIndex");
-  let sceneController: { setActiveChapter(index: number): void; dispose(): void } | undefined;
+  const diagnosticTrigger = root.querySelector<HTMLButtonElement>("[data-motor-diagnostic]");
+  const diagnosticLabel = root.querySelector<HTMLElement>("[data-motor-command-label]");
+  const modeLabel = root.querySelector<HTMLElement>("[data-motor-mode]");
+  let sceneController: ImmersiveSceneController | undefined;
   let disposed = false;
   let activeIndex = 0;
+  let diagnosticMode = false;
   let evidenceDialog: HTMLDialogElement | HTMLElement | undefined;
   let evidenceTrigger: HTMLButtonElement | undefined;
 
@@ -68,10 +73,23 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     else evidenceDialog.classList.add("open");
   };
 
+  const setDiagnosticMode = (active: boolean) => {
+    diagnosticMode = active;
+    root.classList.toggle("motor-lab-diagnostic", active);
+    diagnosticTrigger?.setAttribute("aria-pressed", String(active));
+    diagnosticLabel?.replaceChildren(active ? "退出诊断模式" : "点亮当前实验");
+    modeLabel?.replaceChildren(active ? "诊断模式" : "观察模式");
+    sceneController?.setDiagnosticMode?.(active);
+  };
+
+  const handleDiagnosticClick = () => setDiagnosticMode(!diagnosticMode);
+
   chapters.forEach((chapter) => observer.observe(chapter));
   railItems.forEach((item) => item.addEventListener("click", handleRailClick));
   root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.addEventListener("click", handleEvidenceClick));
+  diagnosticTrigger?.addEventListener("click", handleDiagnosticClick);
   updateActiveChapter(0);
+  setDiagnosticMode(false);
 
   if (sceneHost && reader) {
     void import("./scene.ts")
@@ -79,6 +97,7 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
         if (disposed) return;
         sceneController = mountSignalOrbitScene(sceneHost, buildProjectChapters(project));
         sceneController?.setActiveChapter(activeIndex);
+        sceneController?.setDiagnosticMode?.(diagnosticMode);
       })
       .catch((error) => console.warn("Immersive project scene failed to mount", error));
   }
@@ -88,6 +107,7 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     observer.disconnect();
     railItems.forEach((item) => item.removeEventListener("click", handleRailClick));
     root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.removeEventListener("click", handleEvidenceClick));
+    diagnosticTrigger?.removeEventListener("click", handleDiagnosticClick);
     closeEvidence();
     sceneController?.dispose();
   };

@@ -1,11 +1,9 @@
 import * as THREE from "three";
 import { createSignalOrbitState } from "./sceneState.ts";
 import type { ProjectChapter } from "./types.ts";
+import type { ImmersiveSceneController } from "./types.ts";
 
-export type SignalOrbitSceneController = {
-  setActiveChapter(index: number): void;
-  dispose(): void;
-};
+export type SignalOrbitSceneController = ImmersiveSceneController;
 
 type SignalOrbitRendererConfig = {
   pixelRatio: number;
