@@ -120,7 +120,7 @@ function renderMotorStoryProject(project: ProjectItem, chapters: ProjectChapter[
         </div>
       </div>
       <div class="motor-story-timeline immersive-project-layout">
-        <div class="motor-story-track" aria-hidden="true"><span></span></div>
+        <div class="motor-story-track" aria-hidden="true"><span class="motor-story-track-progress"></span></div>
         <div class="immersive-project-reader">
           ${chapters.map((chapter) => renderChapter(chapter, true)).join("")}
         </div>

@@ -8,7 +8,7 @@ import { createSignalOrbitState } from "../src/features/projects/immersive/scene
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
 import { getActiveChapterIndex, getChapterAriaCurrent, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
 import { getSceneModuleKey } from "../src/features/projects/immersive/sceneLoader.ts";
-import { createMotorStoryState, getMotorStoryFrameWindow } from "../src/features/projects/immersive/motorStoryState.ts";
+import { createMotorStoryState, getMotorStoryFrameWindow, getMotorTimelineReadProgress } from "../src/features/projects/immersive/motorStoryState.ts";
 import { getMotorStoryFrameSrc } from "../src/features/projects/immersive/motorStorySequence.ts";
 
 test("project experience uses the ordinary shell by default", () => {
@@ -126,6 +126,7 @@ test("motor preset renders one continuous scroll stage and timeline axis", () =>
   assert.match(html, /class="motor-story-stage"/);
   assert.match(html, /class="motor-story-axis"/);
   assert.match(html, /class="motor-story-timeline immersive-project-layout"/);
+  assert.match(html, /class="motor-story-track-progress"/);
   assert.doesNotMatch(html, /data-motor-diagnostic/);
 });
 
@@ -174,6 +175,12 @@ test("motor story preloads a bounded window around the requested frame", () => {
 test("motor story frame paths match the generated Blender sequence", () => {
   assert.equal(getMotorStoryFrameSrc(0), "/images/projects/motor-control/story/frame-0001.webp");
   assert.equal(getMotorStoryFrameSrc(79), "/images/projects/motor-control/story/frame-0080.webp");
+});
+
+test("motor timeline progress follows the reading viewport and stays bounded", () => {
+  assert.equal(getMotorTimelineReadProgress(720, 3600, 1000), 0);
+  assert.ok(getMotorTimelineReadProgress(-900, 3600, 1000) > 0.5);
+  assert.equal(getMotorTimelineReadProgress(-5000, 3600, 1000), 1);
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {

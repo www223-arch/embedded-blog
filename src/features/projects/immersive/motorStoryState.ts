@@ -50,6 +50,16 @@ export function getMotorStoryFrameWindow(index: number, frameCount: number, radi
   return Array.from({ length: end - start + 1 }, (_, offset) => start + offset);
 }
 
+export function getMotorTimelineReadProgress(
+  timelineTop: number,
+  timelineHeight: number,
+  viewportHeight: number
+): number {
+  const readingLine = viewportHeight * 0.72;
+  const readingDistance = Math.max(timelineHeight - viewportHeight * 0.48, 1);
+  return clamp((readingLine - timelineTop) / readingDistance, 0, 1);
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(Number.isFinite(value) ? value : min, min), max);
 }

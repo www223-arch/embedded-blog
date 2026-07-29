@@ -2,6 +2,7 @@ import type { ProjectItem } from "../../../content/schema";
 import { buildProjectChapters } from "./view.ts";
 import type { ImmersiveSceneController } from "./types.ts";
 import { loadImmersiveScene } from "./sceneLoader.ts";
+import { getMotorTimelineReadProgress } from "./motorStoryState.ts";
 
 export function getActiveChapterIndex(ratios: number[]): number {
   return ratios.reduce((active, ratio, index) => (ratio > ratios[active] ? index : active), 0);
@@ -19,6 +20,8 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   const sceneHost = root.querySelector<HTMLElement>("#immersiveProjectScene");
   const reader = root.querySelector<HTMLElement>(".immersive-project-reader");
   const storyStage = root.querySelector<HTMLElement>(".motor-story-stage");
+  const motorTimeline = root.querySelector<HTMLElement>(".motor-story-timeline");
+  const motorRoot = root.querySelector<HTMLElement>(".motor-lab-project") || root;
   const chapters = [...root.querySelectorAll<HTMLElement>(".immersive-project-chapter")];
   const railItems = [...root.querySelectorAll<HTMLButtonElement>(".immersive-project-rail-item")];
   const chapterRatios = chapters.map(() => 0);
@@ -32,10 +35,20 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
 
   const updateStoryProgress = () => {
     scrollFrame = 0;
-    if (!storyStage || !sceneController?.setProgress) return;
-    const rect = storyStage.getBoundingClientRect();
-    const distance = Math.max(storyStage.offsetHeight - window.innerHeight, 1);
-    sceneController.setProgress(Math.min(Math.max(-rect.top / distance, 0), 1));
+    if (motorTimeline) {
+      const timelineRect = motorTimeline.getBoundingClientRect();
+      const timelineProgress = getMotorTimelineReadProgress(
+        timelineRect.top,
+        motorTimeline.offsetHeight,
+        window.innerHeight
+      );
+      motorRoot.style.setProperty("--motor-reader-progress", String(timelineProgress));
+    }
+    if (storyStage && sceneController?.setProgress) {
+      const rect = storyStage.getBoundingClientRect();
+      const distance = Math.max(storyStage.offsetHeight - window.innerHeight, 1);
+      sceneController.setProgress(Math.min(Math.max(-rect.top / distance, 0), 1));
+    }
   };
 
   const handleStoryScroll = () => {
@@ -49,6 +62,16 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
       const ariaCurrent = getChapterAriaCurrent(itemIndex === activeIndex);
       if (ariaCurrent) item.setAttribute("aria-current", ariaCurrent);
       else item.removeAttribute("aria-current");
+    });
+    chapters.forEach((chapter, chapterIndex) => {
+      const active = chapterIndex === activeIndex;
+      if (active) chapter.dataset.active = "true";
+      else delete chapter.dataset.active;
+
+      const node = chapter.querySelector<HTMLElement>(".motor-story-node");
+      if (!node) return;
+      if (active) node.setAttribute("aria-current", "step");
+      else node.removeAttribute("aria-current");
     });
     indexLabel?.replaceChildren(String(activeIndex + 1).padStart(2, "0"));
     sceneController?.setActiveChapter(activeIndex);
@@ -70,6 +93,22 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     const id = target.dataset.chapterTarget;
     if (!id) return;
     root.querySelector<HTMLElement>(`#${CSS.escape(id)}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const resetStoryParallax = () => {
+    motorRoot.style.setProperty("--motor-parallax-x", "0px");
+    motorRoot.style.setProperty("--motor-parallax-y", "0px");
+  };
+
+  const handleStoryPointerMove = (event: PointerEvent) => {
+    if (!storyStage || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = storyStage.getBoundingClientRect();
+    const visibleTop = Math.max(rect.top, 68);
+    const visibleHeight = Math.min(window.innerHeight - 68, Math.max(rect.bottom - visibleTop, 1));
+    const x = ((event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5) * 2;
+    const y = ((event.clientY - visibleTop) / visibleHeight - 0.5) * 2;
+    motorRoot.style.setProperty("--motor-parallax-x", `${(x * 7).toFixed(2)}px`);
+    motorRoot.style.setProperty("--motor-parallax-y", `${(y * 4).toFixed(2)}px`);
   };
 
   const closeEvidence = () => {
@@ -98,7 +137,10 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.addEventListener("click", handleEvidenceClick));
   window.addEventListener("scroll", handleStoryScroll, { passive: true });
   window.addEventListener("resize", handleStoryScroll, { passive: true });
+  storyStage?.addEventListener("pointermove", handleStoryPointerMove, { passive: true });
+  storyStage?.addEventListener("pointerleave", resetStoryParallax);
   updateActiveChapter(0);
+  updateStoryProgress();
 
   if (sceneHost && reader) {
     void loadImmersiveScene(project.visualPreset)
@@ -118,7 +160,12 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.removeEventListener("click", handleEvidenceClick));
     window.removeEventListener("scroll", handleStoryScroll);
     window.removeEventListener("resize", handleStoryScroll);
+    storyStage?.removeEventListener("pointermove", handleStoryPointerMove);
+    storyStage?.removeEventListener("pointerleave", resetStoryParallax);
     cancelAnimationFrame(scrollFrame);
+    motorRoot.style.removeProperty("--motor-reader-progress");
+    motorRoot.style.removeProperty("--motor-parallax-x");
+    motorRoot.style.removeProperty("--motor-parallax-y");
     closeEvidence();
     sceneController?.dispose();
   };
