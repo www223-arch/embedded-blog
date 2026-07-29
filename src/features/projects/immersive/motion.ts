@@ -1,6 +1,8 @@
 import type { ProjectItem } from "../../../content/schema";
 import { buildProjectChapters } from "./view.ts";
 import type { ImmersiveSceneController } from "./types.ts";
+import type { MotorLabPart } from "./motorLabState.ts";
+import { loadImmersiveScene } from "./sceneLoader.ts";
 
 export function getActiveChapterIndex(ratios: number[]): number {
   return ratios.reduce((active, ratio, index) => (ratio > ratios[active] ? index : active), 0);
@@ -20,6 +22,7 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   const diagnosticTrigger = root.querySelector<HTMLButtonElement>("[data-motor-diagnostic]");
   const diagnosticLabel = root.querySelector<HTMLElement>("[data-motor-command-label]");
   const modeLabel = root.querySelector<HTMLElement>("[data-motor-mode]");
+  const partLabel = root.querySelector<HTMLElement>("[data-motor-part]");
   let sceneController: ImmersiveSceneController | undefined;
   let disposed = false;
   let activeIndex = 0;
@@ -84,6 +87,17 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
 
   const handleDiagnosticClick = () => setDiagnosticMode(!diagnosticMode);
 
+  const handlePartChange = (part: MotorLabPart) => {
+    const labels: Record<MotorLabPart, string> = {
+      assembly: "整机装配",
+      rotor: "转子与输出轴",
+      encoder: "编码器与零位",
+      phases: "三相定子路径"
+    };
+    root.dataset.motorPart = part;
+    partLabel?.replaceChildren(labels[part]);
+  };
+
   chapters.forEach((chapter) => observer.observe(chapter));
   railItems.forEach((item) => item.addEventListener("click", handleRailClick));
   root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.addEventListener("click", handleEvidenceClick));
@@ -92,10 +106,10 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   setDiagnosticMode(false);
 
   if (sceneHost && reader) {
-    void import("./scene.ts")
-      .then(({ mountSignalOrbitScene }) => {
+    void loadImmersiveScene(project.visualPreset)
+      .then((mountScene) => {
         if (disposed) return;
-        sceneController = mountSignalOrbitScene(sceneHost, buildProjectChapters(project));
+        sceneController = mountScene(sceneHost, buildProjectChapters(project), { onPartChange: handlePartChange });
         sceneController?.setActiveChapter(activeIndex);
         sceneController?.setDiagnosticMode?.(diagnosticMode);
       })

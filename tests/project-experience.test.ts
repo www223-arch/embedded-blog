@@ -8,6 +8,7 @@ import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive
 import { getActiveChapterIndex, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
 import { createMotorLabState, isPointerDrag } from "../src/features/projects/immersive/motorLabState.ts";
 import { getSceneModuleKey } from "../src/features/projects/immersive/sceneLoader.ts";
+import { getMotorLabRendererConfig } from "../src/features/projects/immersive/motorLabScene.ts";
 
 test("project experience uses the ordinary shell by default", () => {
   assert.equal(selectProjectExperience({ presentation: "standard" }), "standard");
@@ -114,6 +115,10 @@ test("immersive scene module keys preserve project-specific presets", () => {
   assert.equal(getSceneModuleKey("motor-lab"), "motor-lab");
   assert.equal(getSceneModuleKey("signal"), "signal");
   assert.equal(getSceneModuleKey("orbit"), "signal");
+});
+
+test("motor lab renderer caps density and enables direct manipulation", () => {
+  assert.deepEqual(getMotorLabRendererConfig(3), { pixelRatio: 1.5, interactive: true });
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {
