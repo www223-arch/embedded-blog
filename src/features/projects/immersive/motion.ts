@@ -19,6 +19,7 @@ export function getChapterAriaCurrent(active: boolean): "step" | null {
 export function mountImmersiveProjectExperience(root: HTMLElement, project: ProjectItem): () => void {
   const sceneHost = root.querySelector<HTMLElement>("#immersiveProjectScene");
   const reader = root.querySelector<HTMLElement>(".immersive-project-reader");
+  const storyStage = root.querySelector<HTMLElement>(".motor-story-stage");
   const chapters = [...root.querySelectorAll<HTMLElement>(".immersive-project-chapter")];
   const railItems = [...root.querySelectorAll<HTMLButtonElement>(".immersive-project-rail-item")];
   const chapterRatios = chapters.map(() => 0);
@@ -34,6 +35,20 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   let selectedPart: MotorLabPart = "assembly";
   let evidenceDialog: HTMLDialogElement | HTMLElement | undefined;
   let evidenceTrigger: HTMLButtonElement | undefined;
+  let scrollFrame = 0;
+
+  const updateStoryProgress = () => {
+    scrollFrame = 0;
+    if (!storyStage || !sceneController?.setProgress) return;
+    const rect = storyStage.getBoundingClientRect();
+    const distance = Math.max(storyStage.offsetHeight - window.innerHeight, 1);
+    sceneController.setProgress(Math.min(Math.max(-rect.top / distance, 0), 1));
+  };
+
+  const handleStoryScroll = () => {
+    if (!storyStage || scrollFrame) return;
+    scrollFrame = requestAnimationFrame(updateStoryProgress);
+  };
 
   const updateActiveChapter = (index: number) => {
     activeIndex = Math.min(Math.max(index, 0), Math.max(chapters.length - 1, 0));
@@ -110,6 +125,8 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   railItems.forEach((item) => item.addEventListener("click", handleRailClick));
   root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.addEventListener("click", handleEvidenceClick));
   diagnosticTrigger?.addEventListener("click", handleDiagnosticClick);
+  window.addEventListener("scroll", handleStoryScroll, { passive: true });
+  window.addEventListener("resize", handleStoryScroll, { passive: true });
   updateActiveChapter(0);
   setDiagnosticMode(false);
 
@@ -120,6 +137,7 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
         sceneController = mountScene(sceneHost, buildProjectChapters(project), { onPartChange: handlePartChange });
         sceneController?.setActiveChapter(activeIndex);
         sceneController?.setDiagnosticMode?.(diagnosticMode);
+        updateStoryProgress();
       })
       .catch((error) => console.warn("Immersive project scene failed to mount", error));
   }
@@ -130,6 +148,9 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     railItems.forEach((item) => item.removeEventListener("click", handleRailClick));
     root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.removeEventListener("click", handleEvidenceClick));
     diagnosticTrigger?.removeEventListener("click", handleDiagnosticClick);
+    window.removeEventListener("scroll", handleStoryScroll);
+    window.removeEventListener("resize", handleStoryScroll);
+    cancelAnimationFrame(scrollFrame);
     closeEvidence();
     sceneController?.dispose();
   };

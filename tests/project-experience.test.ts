@@ -9,6 +9,8 @@ import { getActiveChapterIndex, getChapterAriaCurrent, getEvidenceReturnTargetId
 import { createMotorLabState, getMotorLabReadout, isPointerDrag } from "../src/features/projects/immersive/motorLabState.ts";
 import { getSceneModuleKey } from "../src/features/projects/immersive/sceneLoader.ts";
 import { getMotorLabRendererConfig } from "../src/features/projects/immersive/motorLabScene.ts";
+import { createMotorStoryState, getMotorStoryFrameWindow } from "../src/features/projects/immersive/motorStoryState.ts";
+import { getMotorStoryFrameSrc } from "../src/features/projects/immersive/motorStorySequence.ts";
 
 test("project experience uses the ordinary shell by default", () => {
   assert.equal(selectProjectExperience({ presentation: "standard" }), "standard");
@@ -153,6 +155,39 @@ test("motor lab readout keeps diagnostic and part labels stable", () => {
     partLabel: "编码器与零位",
     commandLabel: "退出诊断模式"
   });
+});
+
+test("motor story progress moves through assembled, explosion, handoff, and timeline stages", () => {
+  assert.deepEqual(createMotorStoryState(-1, 80), {
+    progress: 0,
+    frameIndex: 0,
+    stage: "assembled",
+    explodeProgress: 0,
+    timelineProgress: 0,
+    visibleLabels: []
+  });
+
+  const exploding = createMotorStoryState(0.4, 80);
+  assert.equal(exploding.stage, "exploding");
+  assert.equal(exploding.frameIndex, 32);
+  assert.ok(exploding.explodeProgress > 0 && exploding.explodeProgress < 1);
+  assert.deepEqual(exploding.visibleLabels, ["front-cover", "rotor"]);
+
+  assert.equal(createMotorStoryState(0.74, 80).stage, "handoff");
+  assert.equal(createMotorStoryState(1.4, 80).stage, "timeline");
+  assert.equal(createMotorStoryState(1.4, 80).frameIndex, 79);
+  assert.equal(createMotorStoryState(1.4, 80).timelineProgress, 1);
+});
+
+test("motor story preloads a bounded window around the requested frame", () => {
+  assert.deepEqual(getMotorStoryFrameWindow(0, 80, 2), [0, 1, 2]);
+  assert.deepEqual(getMotorStoryFrameWindow(40, 80, 2), [38, 39, 40, 41, 42]);
+  assert.deepEqual(getMotorStoryFrameWindow(79, 80, 2), [77, 78, 79]);
+});
+
+test("motor story frame paths match the generated Blender sequence", () => {
+  assert.equal(getMotorStoryFrameSrc(0), "/images/projects/motor-control/story/frame-0001.webp");
+  assert.equal(getMotorStoryFrameSrc(79), "/images/projects/motor-control/story/frame-0080.webp");
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {

@@ -18,8 +18,8 @@ export function getSceneModuleKey(preset: ProjectItem["visualPreset"]): Immersiv
 
 export async function loadImmersiveScene(preset: ProjectItem["visualPreset"]): Promise<ImmersiveSceneMount> {
   if (getSceneModuleKey(preset) === "motor-lab") {
-    const { mountMotorLabScene } = await import("./motorLabScene.ts");
-    return (host, chapters, options) => mountMotorLabScene(host, chapters, options?.onPartChange);
+    const { mountMotorStorySequence } = await import("./motorStorySequence.ts");
+    return (host, chapters) => mountMotorStorySequence(host, chapters);
   }
 
   const { mountSignalOrbitScene } = await import("./scene.ts");
