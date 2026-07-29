@@ -63,7 +63,7 @@
 
 .motor-lab-project .immersive-project-hero {
   display: grid;
-  grid-template-columns: minmax(280px, 470px) auto;
+  grid-template-columns: minmax(280px, 540px) auto;
   align-content: center;
   width: min(1280px, calc(100% - 64px));
   height: 100%;
@@ -76,7 +76,7 @@
 }
 
 .motor-lab-project .immersive-project-hero h1 {
-  max-width: 520px;
+  max-width: 540px;
   font-size: clamp(44px, 5vw, 72px);
   line-height: 1.02;
 }
@@ -215,6 +215,7 @@
   position: relative;
   z-index: 2;
   display: block;
+  box-sizing: border-box;
   width: min(1220px, calc(100% - 64px));
   min-height: 100vh;
   margin: 0 auto;
@@ -338,7 +339,7 @@ a.motor-story-node:focus-visible::before {
 @media (max-width: 759px), (prefers-reduced-motion: reduce) {
   .motor-lab-project {
     width: min(100% - 24px, 720px);
-    margin: 76px auto 0;
+    margin: 150px auto 0;
     padding: 0 18px 48px;
     background: rgba(4, 9, 19, 0.78);
   }
@@ -346,6 +347,7 @@ a.motor-story-node:focus-visible::before {
   .motor-lab-project .immersive-project-scene {
     position: relative;
     inset: auto;
+    display: block;
     width: 100%;
     height: auto;
     min-height: 240px;
@@ -354,7 +356,13 @@ a.motor-story-node:focus-visible::before {
 
   .motor-story-poster {
     position: static;
+    display: block;
     aspect-ratio: 16 / 10;
+    opacity: 1;
+  }
+
+  .immersive-project-scene[data-state="ready"] .motor-story-poster {
+    opacity: 1;
   }
 
   .motor-story-canvas,
