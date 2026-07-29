@@ -59,8 +59,8 @@ export function mountMotorLabScene(
   let activeIndex = 0;
   let diagnostic = false;
   let selectedPart: MotorLabPart = "assembly";
-  let targetCameraZ = 5.6;
-  let targetHousingOpacity = 0.72;
+  let targetCameraZ = 5.8;
+  let targetHousingOpacity = 0.78;
   let targetRippleStrength = 0.2;
   let currentRippleStrength = 0.2;
   let frameId = 0;
@@ -98,6 +98,8 @@ export function mountMotorLabScene(
     renderer.setPixelRatio(getMotorLabRendererConfig(window.devicePixelRatio).pixelRatio);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    motor.group.position.x = width > 1080 ? 1.12 : 0.56;
+    targetLook.x = width > 1080 ? 0.36 : 0.14;
   };
 
   const pickPart = (clientX: number, clientY: number) => {
@@ -178,7 +180,7 @@ export function mountMotorLabScene(
   const handleVisibility = () => document.hidden ? stop() : start();
 
   resize();
-  camera.position.set(0, 0.2, 5.6);
+  camera.position.set(0, 0.2, 5.8);
   applyState();
   onPartChange("assembly");
   renderer.domElement.addEventListener("pointerdown", handlePointerDown);
@@ -248,7 +250,7 @@ function createMotorAssembly(): MotorAssembly {
     metalness: 0.82,
     roughness: 0.28,
     transparent: true,
-    opacity: 0.72,
+    opacity: 0.78,
     transmission: 0.08,
     side: THREE.DoubleSide,
     depthWrite: false,
@@ -261,7 +263,7 @@ function createMotorAssembly(): MotorAssembly {
   const encoderMaterial = new THREE.MeshStandardMaterial({ color: 0xd8e1e8, metalness: 0.68, roughness: 0.22, emissive: 0x163e4b, emissiveIntensity: 0.36 });
   const phaseMaterials = [0xf06d62, 0x69ddbf, 0x719cf7].map((color) => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.34, metalness: 0.2, roughness: 0.34 }));
 
-  const housing = markPart(new THREE.Mesh(new THREE.CylinderGeometry(1.34, 1.34, 2.4, 56, 1, true), housingMaterial), "assembly");
+  const housing = markPart(new THREE.Mesh(new THREE.CylinderGeometry(1.34, 1.34, 2.4, 56, 1, true, Math.PI * 0.18, Math.PI * 1.62), housingMaterial), "assembly");
   housing.rotation.z = Math.PI / 2;
   group.add(housing);
 
@@ -290,13 +292,21 @@ function createMotorAssembly(): MotorAssembly {
   }
   group.add(rotor);
 
-  const coilGeometry = new THREE.BoxGeometry(1.82, 0.18, 0.34);
+  const statorToothGeometry = new THREE.BoxGeometry(1.78, 0.13, 0.22);
+  const coilGeometry = new THREE.TorusGeometry(0.23, 0.068, 10, 24);
+  const torusAxis = new THREE.Vector3(0, 0, 1);
   for (let index = 0; index < 12; index += 1) {
     const angle = index / 12 * Math.PI * 2;
+    const radialY = Math.cos(angle);
+    const radialZ = Math.sin(angle);
+    const tooth = markPart(new THREE.Mesh(statorToothGeometry, darkMetal), "phases");
+    tooth.position.set(0, radialY * 0.82, radialZ * 0.82);
+    tooth.rotation.x = angle;
     const coil = markPart(new THREE.Mesh(coilGeometry, copperMaterial), "phases");
-    coil.position.set(0, Math.cos(angle) * 0.92, Math.sin(angle) * 0.92);
-    coil.rotation.x = angle;
-    group.add(coil);
+    coil.position.set(0, radialY * 0.96, radialZ * 0.96);
+    coil.quaternion.setFromUnitVectors(torusAxis, new THREE.Vector3(0, -radialZ, radialY));
+    coil.scale.set(1.42, 1, 1);
+    group.add(tooth, coil);
   }
 
   const encoder = markPart(new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.08, 56), encoderMaterial), "encoder");
@@ -332,7 +342,7 @@ function createMotorAssembly(): MotorAssembly {
   trace.userData.motorPart = "encoder";
   group.add(trace);
 
-  group.scale.setScalar(0.92);
+  group.scale.setScalar(0.86);
   return { group, rotor, housingMaterial, rotorMaterial, encoderMaterial, phaseMaterials, trace, tracePositions };
 }
 

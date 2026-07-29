@@ -5,8 +5,8 @@ import { selectProjectExperience } from "../src/features/projects/experience.ts"
 import { buildProjectChapters, isMotorLabPreset, renderImmersiveProject } from "../src/features/projects/immersive/view.ts";
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
-import { getActiveChapterIndex, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
-import { createMotorLabState, isPointerDrag } from "../src/features/projects/immersive/motorLabState.ts";
+import { getActiveChapterIndex, getChapterAriaCurrent, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
+import { createMotorLabState, getMotorLabReadout, isPointerDrag } from "../src/features/projects/immersive/motorLabState.ts";
 import { getSceneModuleKey } from "../src/features/projects/immersive/sceneLoader.ts";
 import { getMotorLabRendererConfig } from "../src/features/projects/immersive/motorLabScene.ts";
 
@@ -70,6 +70,11 @@ test("evidence return target is stable per chapter", () => {
   assert.equal(getEvidenceReturnTargetId("chapter-03"), "evidence-chapter-03");
 });
 
+test("active project chapters expose a semantic current step", () => {
+  assert.equal(getChapterAriaCurrent(true), "step");
+  assert.equal(getChapterAriaCurrent(false), null);
+});
+
 test("motor lab preset renders an explicit experiment command and part readout", () => {
   const project = projectWith([]);
   project.visualPreset = "motor-lab";
@@ -119,6 +124,14 @@ test("immersive scene module keys preserve project-specific presets", () => {
 
 test("motor lab renderer caps density and enables direct manipulation", () => {
   assert.deepEqual(getMotorLabRendererConfig(3), { pixelRatio: 1.5, interactive: true });
+});
+
+test("motor lab readout keeps diagnostic and part labels stable", () => {
+  assert.deepEqual(getMotorLabReadout("encoder", true), {
+    modeLabel: "诊断模式",
+    partLabel: "编码器与零位",
+    commandLabel: "退出诊断模式"
+  });
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {

@@ -1,7 +1,7 @@
 import type { ProjectItem } from "../../../content/schema";
 import { buildProjectChapters } from "./view.ts";
 import type { ImmersiveSceneController } from "./types.ts";
-import type { MotorLabPart } from "./motorLabState.ts";
+import { getMotorLabReadout, type MotorLabPart } from "./motorLabState.ts";
 import { loadImmersiveScene } from "./sceneLoader.ts";
 
 export function getActiveChapterIndex(ratios: number[]): number {
@@ -10,6 +10,10 @@ export function getActiveChapterIndex(ratios: number[]): number {
 
 export function getEvidenceReturnTargetId(chapterId: string): string {
   return `evidence-${chapterId}`;
+}
+
+export function getChapterAriaCurrent(active: boolean): "step" | null {
+  return active ? "step" : null;
 }
 
 export function mountImmersiveProjectExperience(root: HTMLElement, project: ProjectItem): () => void {
@@ -27,12 +31,17 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   let disposed = false;
   let activeIndex = 0;
   let diagnosticMode = false;
+  let selectedPart: MotorLabPart = "assembly";
   let evidenceDialog: HTMLDialogElement | HTMLElement | undefined;
   let evidenceTrigger: HTMLButtonElement | undefined;
 
   const updateActiveChapter = (index: number) => {
     activeIndex = Math.min(Math.max(index, 0), Math.max(chapters.length - 1, 0));
-    railItems.forEach((item, itemIndex) => item.toggleAttribute("aria-current", itemIndex === activeIndex));
+    railItems.forEach((item, itemIndex) => {
+      const ariaCurrent = getChapterAriaCurrent(itemIndex === activeIndex);
+      if (ariaCurrent) item.setAttribute("aria-current", ariaCurrent);
+      else item.removeAttribute("aria-current");
+    });
     indexLabel?.replaceChildren(String(activeIndex + 1).padStart(2, "0"));
     sceneController?.setActiveChapter(activeIndex);
   };
@@ -78,24 +87,23 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
 
   const setDiagnosticMode = (active: boolean) => {
     diagnosticMode = active;
+    if (active) selectedPart = "encoder";
+    const readout = getMotorLabReadout(selectedPart, active);
     root.classList.toggle("motor-lab-diagnostic", active);
     diagnosticTrigger?.setAttribute("aria-pressed", String(active));
-    diagnosticLabel?.replaceChildren(active ? "退出诊断模式" : "点亮当前实验");
-    modeLabel?.replaceChildren(active ? "诊断模式" : "观察模式");
+    diagnosticLabel?.replaceChildren(readout.commandLabel);
+    modeLabel?.replaceChildren(readout.modeLabel);
+    partLabel?.replaceChildren(readout.partLabel);
     sceneController?.setDiagnosticMode?.(active);
   };
 
   const handleDiagnosticClick = () => setDiagnosticMode(!diagnosticMode);
 
   const handlePartChange = (part: MotorLabPart) => {
-    const labels: Record<MotorLabPart, string> = {
-      assembly: "整机装配",
-      rotor: "转子与输出轴",
-      encoder: "编码器与零位",
-      phases: "三相定子路径"
-    };
+    selectedPart = part;
+    const readout = getMotorLabReadout(part, diagnosticMode);
     root.dataset.motorPart = part;
-    partLabel?.replaceChildren(labels[part]);
+    partLabel?.replaceChildren(readout.partLabel);
   };
 
   chapters.forEach((chapter) => observer.observe(chapter));
