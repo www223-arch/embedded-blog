@@ -125,6 +125,7 @@ test("narrative blocks preserve source order and safe media", () => {
       "title: Diff preview",
       "status: current",
       "media: /images/projects/content-studio/diff.gif",
+      "document: encoder-calibration-report",
       "```",
       "Saved work.",
       "",
@@ -148,6 +149,7 @@ test("narrative blocks preserve source order and safe media", () => {
     title: "Diff preview",
     status: "current",
     media: "/images/projects/content-studio/diff.gif",
+    document: "encoder-calibration-report",
     body: "Saved work."
   });
   assert.deepEqual(blocks[1], {
@@ -171,6 +173,7 @@ test("narrative blocks reject unsafe media and malformed metadata", () => {
       "title: Unsafe",
       "status: unexpected",
       "media: /images/../secret.gif",
+      "document: ../private-report",
       "```",
       "This block stays readable.",
       "",

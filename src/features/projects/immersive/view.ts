@@ -25,7 +25,8 @@ export function buildProjectChapters(project: ProjectItem): ProjectChapter[] {
         title: block.title,
         body: block.body,
         status: block.status,
-        media: block.media
+        media: block.media,
+        document: block.document
       };
     }
 
@@ -51,6 +52,10 @@ export function buildProjectChapters(project: ProjectItem): ProjectChapter[] {
       media: ""
     };
   });
+}
+
+export function getProjectDocumentRoute(documentId: string): string {
+  return `#doc-detail/${encodeURIComponent(documentId)}`;
 }
 
 export function isMotorLabPreset(project: Pick<ProjectItem, "visualPreset">): boolean {
@@ -121,6 +126,9 @@ function renderChapter(chapter: ProjectChapter): string {
   const evidence = chapter.media
     ? `<button class="immersive-project-evidence" type="button" id="evidence-${escapeAttribute(chapter.id)}" data-evidence-src="${escapeAttribute(chapter.media)}" data-evidence-title="${escapeAttribute(chapter.title)}">Open evidence</button>`
     : "";
+  const documentLink = chapter.document
+    ? `<a class="immersive-project-document" href="${getProjectDocumentRoute(chapter.document)}">Read report</a>`
+    : "";
 
   return `
     <article class="immersive-project-chapter status-${chapter.status}" id="${escapeAttribute(chapter.id)}" data-chapter-status="${chapter.status}">
@@ -131,6 +139,7 @@ function renderChapter(chapter: ProjectChapter): string {
         <h2>${escapeHtml(chapter.title)}</h2>
         <div class="immersive-project-body">${body}</div>
         ${evidence}
+        ${documentLink}
       </div>
     </article>
   `;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { ProjectItem } from "../src/content/schema.ts";
 import { selectProjectExperience } from "../src/features/projects/experience.ts";
-import { buildProjectChapters, isMotorLabPreset, renderImmersiveProject } from "../src/features/projects/immersive/view.ts";
+import { buildProjectChapters, getProjectDocumentRoute, isMotorLabPreset, renderImmersiveProject } from "../src/features/projects/immersive/view.ts";
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
 import { getActiveChapterIndex, getChapterAriaCurrent, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
@@ -28,6 +28,27 @@ test("immersive chapters preserve milestone order and active status", () => {
     ["01", "Stepper bring-up", "past"],
     ["02", "Encoder calibration", "current"]
   ]);
+});
+
+test("motor milestones link valid local reports without creating dead actions", () => {
+  const linkedProject = projectWith([
+    {
+      type: "milestone",
+      date: "2026-07-29",
+      title: "Encoder calibration",
+      status: "current",
+      media: "",
+      document: "encoder-calibration-report",
+      body: "Measured ripple."
+    },
+    { type: "milestone", date: "Next", title: "Sensorless control", status: "future", media: "", body: "Not linked yet." }
+  ] as ProjectItem["narrativeBlocks"]);
+  const html = renderImmersiveProject(linkedProject);
+
+  assert.equal(getProjectDocumentRoute("encoder-calibration-report"), "#doc-detail/encoder-calibration-report");
+  assert.match(html, /href="#doc-detail\/encoder-calibration-report"/);
+  assert.match(html, />Read report<\/a>/);
+  assert.equal((html.match(/class="immersive-project-document"/g) ?? []).length, 1);
 });
 
 test("immersive chapters supply a readable overview when milestones are absent", () => {

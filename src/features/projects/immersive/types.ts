@@ -8,6 +8,7 @@ export type ProjectChapter = {
   body: string;
   status: ProjectChapterStatus;
   media: string;
+  document?: string;
 };
 
 export type ImmersiveSceneController = {

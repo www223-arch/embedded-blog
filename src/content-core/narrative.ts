@@ -8,6 +8,7 @@ export type NarrativeBlock =
       title: string;
       status: "past" | "current" | "future";
       media: string;
+      document?: string;
       body: string;
     }
   | {
@@ -44,6 +45,7 @@ export function parseNarrativeBlocks(markdown: string): NarrativeBlock[] {
     if (fence.type === "milestone") {
       const title = stringValue(data.title);
       if (!title) return [];
+      const document = documentId(data.document);
       return [
         {
           type: "milestone",
@@ -51,6 +53,7 @@ export function parseNarrativeBlocks(markdown: string): NarrativeBlock[] {
           title,
           status: milestoneStatus(data.status),
           media: mediaPath(data.media),
+          ...(document ? { document } : {}),
           body
         }
       ];
@@ -106,6 +109,11 @@ function mediaPath(value: unknown): string {
   if (!path.startsWith("/images/") && !path.startsWith("/videos/")) return "";
   if (path.includes("..") || path.includes("\\")) return "";
   return path;
+}
+
+function documentId(value: unknown): string {
+  const id = stringValue(value);
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) ? id : "";
 }
 
 function stringValue(value: unknown): string {

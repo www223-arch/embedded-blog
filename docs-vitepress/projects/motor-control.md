@@ -33,6 +33,7 @@ date: 2026-05-12
 title: 从步进电机开始建立可复现实验
 status: past
 media: ""
+document: foc-stepper-bringup
 ```
 先使用现成步进电机、驱动器和基础代码跑通闭环。这个阶段的目标不是追求性能，而是确认电气连接、控制调用和实验记录都能稳定复现。
 
@@ -41,6 +42,7 @@ date: 2026-06-03
 title: 用频域方法把调参经验写成 SOP
 status: past
 media: ""
+document: foc-frequency-domain-sop
 ```
 把理论学习和实际观察连接起来：记录频域判断方式、关键参数的影响，以及一次实验应当如何被复查。后续会补充频谱、推导笔记和对照结论。
 
@@ -49,6 +51,7 @@ date: 2026-07-29
 title: 速度波动优化与编码器校准
 status: current
 media: ""
+document: foc-encoder-calibration-report
 ```
 当前正在定位低速速度波动与编码器零位、速度估算之间的耦合。这里将持续补充校准步骤、速度曲线、实验条件与尚未被证实的假设。
 

@@ -21,6 +21,7 @@ export const narrativeBlockSchema = z.discriminatedUnion("type", [
     title: z.string(),
     status: z.enum(["past", "current", "future"]),
     media: z.string(),
+    document: z.string().optional(),
     body: z.string()
   }),
   z.object({
