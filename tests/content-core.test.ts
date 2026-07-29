@@ -98,6 +98,24 @@ test("project presentation rejects unsupported visual presets", () => {
   );
 });
 
+test("project presentation accepts a custom motor lab visual preset", () => {
+  const project = projectSchema.parse({
+    id: "motor-control",
+    title: "FOC Motor Control Research",
+    summary: "An object-led engineering project.",
+    stack: [],
+    highlights: [],
+    gallery: [],
+    links: [],
+    status: "published",
+    projectStage: "building",
+    presentation: "immersive",
+    visualPreset: "motor-lab"
+  });
+
+  assert.equal(project.visualPreset, "motor-lab");
+});
+
 test("narrative blocks preserve source order and safe media", () => {
   const parseNarrativeBlocks = getNarrativeParser();
   const blocks = parseNarrativeBlocks(

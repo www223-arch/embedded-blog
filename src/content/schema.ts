@@ -12,7 +12,7 @@ export const projectNarrativeSchema = z.preprocess(
 );
 export const projectVisualPresetSchema = z.preprocess(
   (value) => value === "" ? undefined : value,
-  z.enum(["orbit", "signal", "archive"]).default("orbit")
+  z.enum(["orbit", "signal", "archive", "motor-lab"]).default("orbit")
 );
 export const narrativeBlockSchema = z.discriminatedUnion("type", [
   z.object({

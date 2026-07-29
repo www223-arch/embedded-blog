@@ -53,12 +53,17 @@ export function buildProjectChapters(project: ProjectItem): ProjectChapter[] {
   });
 }
 
+export function isMotorLabPreset(project: Pick<ProjectItem, "visualPreset">): boolean {
+  return project.visualPreset === "motor-lab";
+}
+
 export function renderImmersiveProject(project: ProjectItem): string {
   const chapters = buildProjectChapters(project);
   const total = String(chapters.length).padStart(2, "0");
+  const motorLab = isMotorLabPreset(project);
 
   return `
-    <section class="immersive-project" data-visual-preset="${escapeAttribute(project.visualPreset)}">
+    <section class="immersive-project${motorLab ? " motor-lab-project" : ""}" data-visual-preset="${escapeAttribute(project.visualPreset)}">
       <div class="immersive-project-scene" id="immersiveProjectScene" aria-hidden="true"></div>
       <header class="immersive-project-hero">
         <span class="immersive-project-kicker">Ongoing project</span>
@@ -66,6 +71,7 @@ export function renderImmersiveProject(project: ProjectItem): string {
         <h1>${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.summary)}</p>
         ${project.currentFocus ? `<div class="immersive-project-focus"><span>Current focus</span><strong>${escapeHtml(project.currentFocus)}</strong></div>` : ""}
+        ${motorLab ? renderMotorLabControls(project) : ""}
       </header>
       <div class="immersive-project-layout">
         <nav class="immersive-project-rail" aria-label="Project trajectory">
@@ -76,6 +82,28 @@ export function renderImmersiveProject(project: ProjectItem): string {
         </div>
       </div>
     </section>
+  `;
+}
+
+function renderMotorLabControls(project: ProjectItem): string {
+  const fallback = project.gallery[0]
+    ? `<img class="motor-lab-fallback" src="${escapeAttribute(project.gallery[0])}" alt="${escapeAttribute(project.title)} 项目封面">`
+    : "";
+
+  return `
+    <div class="motor-lab-console">
+      <button class="motor-lab-command" type="button" data-motor-diagnostic aria-pressed="false">
+        <span class="motor-lab-command-mark" aria-hidden="true"></span>
+        <span data-motor-command-label>点亮当前实验</span>
+      </button>
+      <p class="motor-lab-hint">拖动电机观察 · 点击部件识别</p>
+      <div class="motor-lab-readout" role="status" aria-live="polite">
+        <span data-motor-mode>观察模式</span>
+        <strong data-motor-part>整机装配</strong>
+        <small>${escapeHtml(project.currentFocus || "等待新的实验记录")}</small>
+      </div>
+      ${fallback}
+    </div>
   `;
 }
 

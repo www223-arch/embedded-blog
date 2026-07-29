@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { ProjectItem } from "../src/content/schema.ts";
 import { selectProjectExperience } from "../src/features/projects/experience.ts";
-import { buildProjectChapters } from "../src/features/projects/immersive/view.ts";
+import { buildProjectChapters, isMotorLabPreset, renderImmersiveProject } from "../src/features/projects/immersive/view.ts";
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
 import { getActiveChapterIndex, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
@@ -65,6 +65,26 @@ test("reader state resolves the most visible chapter", () => {
 
 test("evidence return target is stable per chapter", () => {
   assert.equal(getEvidenceReturnTargetId("chapter-03"), "evidence-chapter-03");
+});
+
+test("motor lab preset renders an explicit experiment command and part readout", () => {
+  const project = projectWith([]);
+  project.visualPreset = "motor-lab";
+  const html = renderImmersiveProject(project);
+
+  assert.equal(isMotorLabPreset(project), true);
+  assert.match(html, /class="motor-lab-command"/);
+  assert.match(html, /data-motor-diagnostic/);
+  assert.match(html, /class="motor-lab-readout"/);
+  assert.match(html, /点亮当前实验/);
+});
+
+test("signal preset does not inherit motor lab controls", () => {
+  const project = projectWith([]);
+  const html = renderImmersiveProject(project);
+
+  assert.equal(isMotorLabPreset(project), false);
+  assert.doesNotMatch(html, /motor-lab-command/);
 });
 
 function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectItem {

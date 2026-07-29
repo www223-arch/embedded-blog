@@ -1,6 +1,6 @@
 ---
 id: motor-control
-title: FOC Motor Control Research
+title: FOC 电机控制研究
 summary: 从可复现实验出发，逐步沉淀为可扩展电机控制库的一条进行中工程轨迹。
 stack:
   - STM32
@@ -19,14 +19,14 @@ status: published
 projectStage: building
 presentation: immersive
 narrative: chronicle
-visualPreset: signal
-updatedAt: 2026-07-28
+visualPreset: motor-lab
+updatedAt: 2026-07-29
 currentFocus: 速度波动优化与编码器校准
 ---
 
-# FOC Motor Control Research
+# FOC 电机控制研究
 
-这不是一个已经结题的展示，而是一条正在推进的电机控制工程记录。每次实验、一次校准和一个没有解决的问题，都会留在项目轨迹里。
+这不是一个已经结题的展示，而是一条正在推进的电机控制工程记录。每次实验、一次校准和一个尚未解决的问题，都会留在项目轨迹里。
 
 ```milestone
 date: 2026-05-12
@@ -42,10 +42,10 @@ title: 用频域方法把调参经验写成 SOP
 status: past
 media: ""
 ```
-把理论学习和实际观测连接起来：记录频域判断方式、关键参数的影响和一次实验应当如何被复查。后续会补充频谱、推导笔记和对照结论。
+把理论学习和实际观察连接起来：记录频域判断方式、关键参数的影响，以及一次实验应当如何被复查。后续会补充频谱、推导笔记和对照结论。
 
 ```milestone
-date: 2026-07-28
+date: 2026-07-29
 title: 速度波动优化与编码器校准
 status: current
 media: ""
