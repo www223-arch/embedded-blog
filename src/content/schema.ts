@@ -2,9 +2,18 @@ import { z } from "zod";
 
 export const contentStatusSchema = z.enum(["draft", "published", "archived"]);
 export const projectStageSchema = z.enum(["concept", "building", "completed", "maintained", "paused"]);
-export const projectPresentationSchema = z.enum(["standard", "immersive"]);
-export const projectNarrativeSchema = z.enum(["chronicle", "field-notes", "chapters"]);
-export const projectVisualPresetSchema = z.enum(["orbit", "signal", "archive"]);
+export const projectPresentationSchema = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.enum(["standard", "immersive"]).default("standard")
+);
+export const projectNarrativeSchema = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.enum(["chronicle", "field-notes", "chapters"]).default("chronicle")
+);
+export const projectVisualPresetSchema = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.enum(["orbit", "signal", "archive"]).default("orbit")
+);
 export const narrativeBlockSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("milestone"),
@@ -57,9 +66,9 @@ export const projectSchema = z.object({
   ),
   status: contentStatusSchema,
   projectStage: projectStageSchema,
-  presentation: projectPresentationSchema.default("standard"),
-  narrative: projectNarrativeSchema.default("chronicle"),
-  visualPreset: projectVisualPresetSchema.default("orbit"),
+  presentation: projectPresentationSchema,
+  narrative: projectNarrativeSchema,
+  visualPreset: projectVisualPresetSchema,
   updatedAt: z.string().default(""),
   currentFocus: z.string().default(""),
   narrativeBlocks: z.array(narrativeBlockSchema).default([]),

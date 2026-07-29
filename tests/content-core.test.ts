@@ -60,6 +60,27 @@ test("project presentation fields default to the ordinary project experience", (
   assert.deepEqual(project.narrativeBlocks, []);
 });
 
+test("blank project presentation metadata uses ordinary defaults", () => {
+  const project = projectSchema.parse({
+    id: "legacy-project",
+    title: "Legacy Project",
+    summary: "A project written before presentation metadata.",
+    stack: [],
+    highlights: [],
+    gallery: [],
+    links: [],
+    status: "published",
+    projectStage: "completed",
+    presentation: "",
+    narrative: "",
+    visualPreset: ""
+  });
+
+  assert.equal(project.presentation, "standard");
+  assert.equal(project.narrative, "chronicle");
+  assert.equal(project.visualPreset, "orbit");
+});
+
 test("project presentation rejects unsupported visual presets", () => {
   assert.throws(() =>
     projectSchema.parse({

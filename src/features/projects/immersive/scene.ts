@@ -35,7 +35,6 @@ export function mountSignalOrbitScene(host: HTMLElement, chapters: ProjectChapte
   const targetLook = new THREE.Vector3();
   const currentLook = new THREE.Vector3();
   const targetSignalColor = new THREE.Color();
-  const clock = new THREE.Clock();
 
   world.add(stars, createOrbits(), core, signal.group, anchors.group);
   scene.add(world);
@@ -46,6 +45,8 @@ export function mountSignalOrbitScene(host: HTMLElement, chapters: ProjectChapte
   let frameId = 0;
   let disposed = false;
   let running = false;
+  let lastFrameAt = performance.now();
+  let elapsed = 0;
 
   const setActiveChapter = (index: number) => {
     const state = createSignalOrbitState(chapters, index);
@@ -69,8 +70,10 @@ export function mountSignalOrbitScene(host: HTMLElement, chapters: ProjectChapte
 
   const render = () => {
     if (disposed || !running) return;
-    const delta = Math.min(clock.getDelta(), 0.05);
-    const elapsed = clock.elapsedTime;
+    const now = performance.now();
+    const delta = Math.min((now - lastFrameAt) / 1000, 0.05);
+    lastFrameAt = now;
+    elapsed += delta;
 
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetCamera.x, 3.8, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetCamera.y, 3.8, delta);
@@ -98,7 +101,7 @@ export function mountSignalOrbitScene(host: HTMLElement, chapters: ProjectChapte
   const start = () => {
     if (disposed || running || document.hidden) return;
     running = true;
-    clock.start();
+    lastFrameAt = performance.now();
     frameId = requestAnimationFrame(render);
   };
 
@@ -169,7 +172,7 @@ function createStarField(): THREE.Points {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  return new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.025, transparent: true, opacity: 0.76, vertexColors: true, depthWrite: false }));
+  return new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.042, transparent: true, opacity: 0.88, vertexColors: true, depthWrite: false }));
 }
 
 function createOrbits(): THREE.Group {
@@ -186,7 +189,7 @@ function createOrbits(): THREE.Group {
       const angle = (index / 112) * Math.PI * 2;
       points.push(new THREE.Vector3(Math.cos(angle) * ring.radiusX, Math.sin(angle) * ring.radiusY, ring.z));
     }
-    const line = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: ring.color, transparent: true, opacity: 0.26, depthWrite: false }));
+    const line = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: ring.color, transparent: true, opacity: 0.48, depthWrite: false }));
     line.rotation.z = ring.rotation;
     group.add(line);
   });
@@ -195,7 +198,7 @@ function createOrbits(): THREE.Group {
 
 function createControlCore(): THREE.Mesh {
   const material = new THREE.MeshBasicMaterial({ color: 0x79e0bf, transparent: true, opacity: 0.84 });
-  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.28, 2), material);
+  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.38, 2), material);
   core.position.set(0, 0, -1.35);
   return core;
 }
@@ -210,7 +213,7 @@ function createSignalRibbon(): { group: THREE.Group; material: THREE.MeshBasicMa
     new THREE.Vector3(3.85, 0.08, -2.65)
   ], false, "centripetal");
   const material = new THREE.MeshBasicMaterial({ color: 0x79e0bf, transparent: true, opacity: 0.38, blending: THREE.AdditiveBlending, depthWrite: false });
-  const ribbon = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, 0.035, 7, false), material);
+  const ribbon = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, 0.052, 7, false), material);
   const group = new THREE.Group();
   group.add(ribbon);
   return { group, material, targetStrength: 1 };
@@ -224,7 +227,7 @@ function createAnchors(chapters: ProjectChapter[]): { group: THREE.Group; setAct
   for (let index = 0; index < count; index += 1) {
     const progress = count === 1 ? 0.5 : index / (count - 1);
     const angle = (progress - 0.5) * 1.52;
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.09, 18, 18), new THREE.MeshBasicMaterial({ color: 0xe6b56c, transparent: true, opacity: 0.72 }));
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 18), new THREE.MeshBasicMaterial({ color: 0xe6b56c, transparent: true, opacity: 0.88 }));
     mesh.position.set(Math.sin(angle) * 2.65, Math.cos(angle * 1.8) * 0.42, -1.28 - Math.abs(angle) * 1.1);
     meshes.push(mesh);
     group.add(mesh);
@@ -258,7 +261,7 @@ function updateSignal(
   delta: number
 ): void {
   signal.material.color.lerp(targetColor, 1 - Math.exp(-4 * delta));
-  signal.material.opacity = 0.18 + signal.targetStrength * 0.24 + Math.sin(elapsed * 2.4) * 0.025;
+  signal.material.opacity = 0.28 + signal.targetStrength * 0.32 + Math.sin(elapsed * 2.4) * 0.025;
 }
 
 function disposeScene(scene: THREE.Scene): void {

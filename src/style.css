@@ -1,4 +1,6 @@
 
+@import "./styles/immersive-project.css";
+
 .brand {
   text-decoration: none;
   color: var(--text);
