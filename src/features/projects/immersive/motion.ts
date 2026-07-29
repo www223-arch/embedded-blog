@@ -1,7 +1,6 @@
 import type { ProjectItem } from "../../../content/schema";
 import { buildProjectChapters } from "./view.ts";
 import type { ImmersiveSceneController } from "./types.ts";
-import { getMotorLabReadout, type MotorLabPart } from "./motorLabState.ts";
 import { loadImmersiveScene } from "./sceneLoader.ts";
 
 export function getActiveChapterIndex(ratios: number[]): number {
@@ -24,15 +23,9 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
   const railItems = [...root.querySelectorAll<HTMLButtonElement>(".immersive-project-rail-item")];
   const chapterRatios = chapters.map(() => 0);
   const indexLabel = root.querySelector<HTMLElement>("#immersiveProjectIndex");
-  const diagnosticTrigger = root.querySelector<HTMLButtonElement>("[data-motor-diagnostic]");
-  const diagnosticLabel = root.querySelector<HTMLElement>("[data-motor-command-label]");
-  const modeLabel = root.querySelector<HTMLElement>("[data-motor-mode]");
-  const partLabel = root.querySelector<HTMLElement>("[data-motor-part]");
   let sceneController: ImmersiveSceneController | undefined;
   let disposed = false;
   let activeIndex = 0;
-  let diagnosticMode = false;
-  let selectedPart: MotorLabPart = "assembly";
   let evidenceDialog: HTMLDialogElement | HTMLElement | undefined;
   let evidenceTrigger: HTMLButtonElement | undefined;
   let scrollFrame = 0;
@@ -100,43 +93,19 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     else evidenceDialog.classList.add("open");
   };
 
-  const setDiagnosticMode = (active: boolean) => {
-    diagnosticMode = active;
-    if (active) selectedPart = "encoder";
-    const readout = getMotorLabReadout(selectedPart, active);
-    root.classList.toggle("motor-lab-diagnostic", active);
-    diagnosticTrigger?.setAttribute("aria-pressed", String(active));
-    diagnosticLabel?.replaceChildren(readout.commandLabel);
-    modeLabel?.replaceChildren(readout.modeLabel);
-    partLabel?.replaceChildren(readout.partLabel);
-    sceneController?.setDiagnosticMode?.(active);
-  };
-
-  const handleDiagnosticClick = () => setDiagnosticMode(!diagnosticMode);
-
-  const handlePartChange = (part: MotorLabPart) => {
-    selectedPart = part;
-    const readout = getMotorLabReadout(part, diagnosticMode);
-    root.dataset.motorPart = part;
-    partLabel?.replaceChildren(readout.partLabel);
-  };
-
   chapters.forEach((chapter) => observer.observe(chapter));
   railItems.forEach((item) => item.addEventListener("click", handleRailClick));
   root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.addEventListener("click", handleEvidenceClick));
-  diagnosticTrigger?.addEventListener("click", handleDiagnosticClick);
   window.addEventListener("scroll", handleStoryScroll, { passive: true });
   window.addEventListener("resize", handleStoryScroll, { passive: true });
   updateActiveChapter(0);
-  setDiagnosticMode(false);
 
   if (sceneHost && reader) {
     void loadImmersiveScene(project.visualPreset)
       .then((mountScene) => {
         if (disposed) return;
-        sceneController = mountScene(sceneHost, buildProjectChapters(project), { onPartChange: handlePartChange });
+        sceneController = mountScene(sceneHost, buildProjectChapters(project));
         sceneController?.setActiveChapter(activeIndex);
-        sceneController?.setDiagnosticMode?.(diagnosticMode);
         updateStoryProgress();
       })
       .catch((error) => console.warn("Immersive project scene failed to mount", error));
@@ -147,7 +116,6 @@ export function mountImmersiveProjectExperience(root: HTMLElement, project: Proj
     observer.disconnect();
     railItems.forEach((item) => item.removeEventListener("click", handleRailClick));
     root.querySelectorAll<HTMLButtonElement>("[data-evidence-src]").forEach((trigger) => trigger.removeEventListener("click", handleEvidenceClick));
-    diagnosticTrigger?.removeEventListener("click", handleDiagnosticClick);
     window.removeEventListener("scroll", handleStoryScroll);
     window.removeEventListener("resize", handleStoryScroll);
     cancelAnimationFrame(scrollFrame);

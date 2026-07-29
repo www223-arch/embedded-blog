@@ -27,6 +27,7 @@ export function mountMotorStorySequence(
   host.appendChild(canvas);
   host.dataset.state = "loading";
   host.dataset.scene = "motor-story";
+  const storyRoot = host.closest<HTMLElement>(".motor-lab-project");
 
   const frames: Array<HTMLImageElement | null | undefined> = Array(FRAME_COUNT);
   const queued = new Set<number>();
@@ -107,6 +108,12 @@ export function mountMotorStorySequence(
       host.dataset.storyStage = state.stage;
       host.style.setProperty("--motor-story-progress", state.progress.toFixed(4));
       host.style.setProperty("--motor-timeline-progress", state.timelineProgress.toFixed(4));
+      if (storyRoot) {
+        storyRoot.dataset.storyStage = state.stage;
+        storyRoot.dataset.visibleLabels = state.visibleLabels.join(" ");
+        storyRoot.style.setProperty("--motor-story-progress", state.progress.toFixed(4));
+        storyRoot.style.setProperty("--motor-timeline-progress", state.timelineProgress.toFixed(4));
+      }
       requestFrames(getMotorStoryFrameWindow(requestedIndex, FRAME_COUNT, 4));
       draw();
     },
@@ -121,6 +128,12 @@ export function mountMotorStorySequence(
       delete host.dataset.state;
       delete host.dataset.scene;
       delete host.dataset.storyStage;
+      if (storyRoot) {
+        delete storyRoot.dataset.storyStage;
+        delete storyRoot.dataset.visibleLabels;
+        storyRoot.style.removeProperty("--motor-story-progress");
+        storyRoot.style.removeProperty("--motor-timeline-progress");
+      }
     }
   };
 }
@@ -131,4 +144,3 @@ function resolveAssetPath(value: string): string {
   const base = env?.BASE_URL || "/";
   return `${base.replace(/\/$/, "")}${value}`;
 }
-

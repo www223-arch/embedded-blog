@@ -67,8 +67,10 @@ export function renderImmersiveProject(project: ProjectItem): string {
   const total = String(chapters.length).padStart(2, "0");
   const motorLab = isMotorLabPreset(project);
 
+  if (motorLab) return renderMotorStoryProject(project, chapters, total);
+
   return `
-    <section class="immersive-project${motorLab ? " motor-lab-project" : ""}" data-visual-preset="${escapeAttribute(project.visualPreset)}">
+    <section class="immersive-project" data-visual-preset="${escapeAttribute(project.visualPreset)}">
       <div class="immersive-project-scene" id="immersiveProjectScene" aria-hidden="true"></div>
       <header class="immersive-project-hero">
         <span class="immersive-project-kicker">Ongoing project</span>
@@ -76,39 +78,54 @@ export function renderImmersiveProject(project: ProjectItem): string {
         <h1>${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.summary)}</p>
         ${project.currentFocus ? `<div class="immersive-project-focus"><span>Current focus</span><strong>${escapeHtml(project.currentFocus)}</strong></div>` : ""}
-        ${motorLab ? renderMotorLabControls(project) : ""}
       </header>
       <div class="immersive-project-layout">
         <nav class="immersive-project-rail" aria-label="Project trajectory">
           ${chapters.map((chapter, index) => renderRailItem(chapter, index === 0)).join("")}
         </nav>
         <div class="immersive-project-reader">
-          ${chapters.map(renderChapter).join("")}
+          ${chapters.map((chapter) => renderChapter(chapter, false)).join("")}
         </div>
       </div>
     </section>
   `;
 }
 
-function renderMotorLabControls(project: ProjectItem): string {
-  const fallback = project.gallery[0]
-    ? `<img class="motor-lab-fallback" src="${escapeAttribute(project.gallery[0])}" alt="${escapeAttribute(project.title)} 项目封面">`
-    : "";
-
+function renderMotorStoryProject(project: ProjectItem, chapters: ProjectChapter[], total: string): string {
   return `
-    <div class="motor-lab-console">
-      <button class="motor-lab-command" type="button" data-motor-diagnostic aria-pressed="false">
-        <span class="motor-lab-command-mark" aria-hidden="true"></span>
-        <span data-motor-command-label>点亮当前实验</span>
-      </button>
-      <p class="motor-lab-hint">拖动电机观察 · 点击部件识别</p>
-      <div class="motor-lab-readout" role="status" aria-live="polite">
-        <span data-motor-mode>观察模式</span>
-        <strong data-motor-part>整机装配</strong>
-        <small>${escapeHtml(project.currentFocus || "等待新的实验记录")}</small>
+    <section class="immersive-project motor-lab-project" data-visual-preset="motor-lab" data-story-stage="assembled">
+      <div class="immersive-project-scene" id="immersiveProjectScene" aria-hidden="true">
+        <img class="motor-story-poster" src="${resolveAssetPath("/images/projects/motor-control/story/poster.webp")}" alt="">
       </div>
-      ${fallback}
-    </div>
+      <div class="motor-story-stage">
+        <div class="motor-story-sticky">
+          <header class="immersive-project-hero">
+            <span class="immersive-project-kicker">Ongoing engineering project</span>
+            <p class="immersive-project-count"><b id="immersiveProjectIndex">01</b> / ${total}</p>
+            <h1>${escapeHtml(project.title)}</h1>
+            <p>${escapeHtml(project.summary)}</p>
+            ${project.currentFocus ? `<div class="immersive-project-focus"><span>Current focus</span><strong>${escapeHtml(project.currentFocus)}</strong></div>` : ""}
+          </header>
+          <div class="motor-story-labels" aria-hidden="true">
+            <span data-story-label="front-cover">前端盖</span>
+            <span data-story-label="rotor">转子与轴</span>
+            <span data-story-label="stator">定子绕组</span>
+            <span data-story-label="encoder">编码器</span>
+          </div>
+          <div class="motor-story-axis" aria-hidden="true"><span></span><strong>Project trajectory</strong></div>
+          <p class="motor-story-scroll-cue"><span aria-hidden="true"></span>Scroll to disassemble</p>
+          <div class="motor-story-handoff" aria-hidden="true">
+            <span>From assembly</span><strong>to engineering evidence</strong>
+          </div>
+        </div>
+      </div>
+      <div class="motor-story-timeline immersive-project-layout">
+        <div class="motor-story-track" aria-hidden="true"><span></span></div>
+        <div class="immersive-project-reader">
+          ${chapters.map((chapter) => renderChapter(chapter, true)).join("")}
+        </div>
+      </div>
+    </section>
   `;
 }
 
@@ -121,18 +138,20 @@ function renderRailItem(chapter: ProjectChapter, active: boolean): string {
   `;
 }
 
-function renderChapter(chapter: ProjectChapter): string {
+function renderChapter(chapter: ProjectChapter, motorStory: boolean): string {
   const body = renderMarkdownDocument(chapter.body).html;
   const evidence = chapter.media
     ? `<button class="immersive-project-evidence" type="button" id="evidence-${escapeAttribute(chapter.id)}" data-evidence-src="${escapeAttribute(chapter.media)}" data-evidence-title="${escapeAttribute(chapter.title)}">Open evidence</button>`
     : "";
-  const documentLink = chapter.document
+  const documentLink = chapter.document && !motorStory
     ? `<a class="immersive-project-document" href="${getProjectDocumentRoute(chapter.document)}">Read report</a>`
     : "";
+  const storyNode = motorStory ? renderMotorStoryNode(chapter) : "";
 
   return `
-    <article class="immersive-project-chapter status-${chapter.status}" id="${escapeAttribute(chapter.id)}" data-chapter-status="${chapter.status}">
-      <div class="immersive-project-chapter-index">${chapter.railLabel}</div>
+    <article class="immersive-project-chapter${motorStory ? " motor-story-chapter" : ""} status-${chapter.status}" id="${escapeAttribute(chapter.id)}" data-chapter-status="${chapter.status}">
+      ${motorStory ? "" : `<div class="immersive-project-chapter-index">${chapter.railLabel}</div>`}
+      ${storyNode}
       <div class="immersive-project-chapter-copy">
         <span class="immersive-project-status">${getStatusLabel(chapter.status)}</span>
         <p class="immersive-project-eyebrow">${escapeHtml(chapter.eyebrow)}</p>
@@ -143,6 +162,13 @@ function renderChapter(chapter: ProjectChapter): string {
       </div>
     </article>
   `;
+}
+
+function renderMotorStoryNode(chapter: ProjectChapter): string {
+  const content = `<span>${chapter.railLabel}</span><b>${escapeHtml(chapter.title)}</b><small>${chapter.document ? "Read report" : "Project note"}</small>`;
+  return chapter.document
+    ? `<a class="motor-story-node immersive-project-document" href="${getProjectDocumentRoute(chapter.document)}" aria-label="Read report: ${escapeAttribute(chapter.title)}">${content}</a>`
+    : `<div class="motor-story-node" aria-label="${escapeAttribute(chapter.title)}">${content}</div>`;
 }
 
 function getStatusLabel(status: ProjectChapterStatus): string {
@@ -167,4 +193,11 @@ function escapeHtml(value: string): string {
 
 function escapeAttribute(value: string): string {
   return escapeHtml(value).replace(/`/g, "&#096;");
+}
+
+function resolveAssetPath(value: string): string {
+  if (!value.startsWith("/")) return value;
+  const env = (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env;
+  const base = env?.BASE_URL || "/";
+  return `${base.replace(/\/$/, "")}${value}`;
 }

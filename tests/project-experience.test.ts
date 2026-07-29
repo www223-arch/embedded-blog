@@ -6,9 +6,7 @@ import { buildProjectChapters, getProjectDocumentRoute, isMotorLabPreset, render
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
 import { getActiveChapterIndex, getChapterAriaCurrent, getEvidenceReturnTargetId } from "../src/features/projects/immersive/motion.ts";
-import { createMotorLabState, getMotorLabReadout, isPointerDrag } from "../src/features/projects/immersive/motorLabState.ts";
 import { getSceneModuleKey } from "../src/features/projects/immersive/sceneLoader.ts";
-import { getMotorLabRendererConfig } from "../src/features/projects/immersive/motorLabScene.ts";
 import { createMotorStoryState, getMotorStoryFrameWindow } from "../src/features/projects/immersive/motorStoryState.ts";
 import { getMotorStoryFrameSrc } from "../src/features/projects/immersive/motorStorySequence.ts";
 
@@ -45,12 +43,14 @@ test("motor milestones link valid local reports without creating dead actions", 
     },
     { type: "milestone", date: "Next", title: "Sensorless control", status: "future", media: "", body: "Not linked yet." }
   ] as ProjectItem["narrativeBlocks"]);
+  linkedProject.visualPreset = "motor-lab";
   const html = renderImmersiveProject(linkedProject);
 
   assert.equal(getProjectDocumentRoute("encoder-calibration-report"), "#doc-detail/encoder-calibration-report");
   assert.match(html, /href="#doc-detail\/encoder-calibration-report"/);
-  assert.match(html, />Read report<\/a>/);
-  assert.equal((html.match(/class="immersive-project-document"/g) ?? []).length, 1);
+  assert.match(html, /class="motor-story-node immersive-project-document"/);
+  assert.match(html, /<small>Read report<\/small>/);
+  assert.equal((html.match(/href="#doc-detail\/encoder-calibration-report"/g) ?? []).length, 1);
 });
 
 test("immersive chapters supply a readable overview when milestones are absent", () => {
@@ -98,16 +98,16 @@ test("active project chapters expose a semantic current step", () => {
   assert.equal(getChapterAriaCurrent(false), null);
 });
 
-test("motor lab preset renders an explicit experiment command and part readout", () => {
+test("motor preset renders one continuous scroll stage and timeline axis", () => {
   const project = projectWith([]);
   project.visualPreset = "motor-lab";
   const html = renderImmersiveProject(project);
 
   assert.equal(isMotorLabPreset(project), true);
-  assert.match(html, /class="motor-lab-command"/);
-  assert.match(html, /data-motor-diagnostic/);
-  assert.match(html, /class="motor-lab-readout"/);
-  assert.match(html, /点亮当前实验/);
+  assert.match(html, /class="motor-story-stage"/);
+  assert.match(html, /class="motor-story-axis"/);
+  assert.match(html, /class="motor-story-timeline immersive-project-layout"/);
+  assert.doesNotMatch(html, /data-motor-diagnostic/);
 });
 
 test("signal preset does not inherit motor lab controls", () => {
@@ -118,43 +118,10 @@ test("signal preset does not inherit motor lab controls", () => {
   assert.doesNotMatch(html, /motor-lab-command/);
 });
 
-test("motor lab state clamps chapters and preserves selected part", () => {
-  const state = createMotorLabState(5, 99, false, "encoder");
-
-  assert.equal(state.activeIndex, 4);
-  assert.equal(state.selectedPart, "encoder");
-});
-
-test("motor lab diagnostic state reveals internals and strengthens ripple", () => {
-  const observing = createMotorLabState(5, 2, false);
-  const diagnostic = createMotorLabState(5, 2, true);
-
-  assert.ok(diagnostic.housingOpacity < observing.housingOpacity);
-  assert.ok(diagnostic.rippleStrength > observing.rippleStrength);
-  assert.ok(diagnostic.cameraZ < observing.cameraZ);
-});
-
-test("motor lab pointer movement distinguishes a click from a drag", () => {
-  assert.equal(isPointerDrag(16), false);
-  assert.equal(isPointerDrag(64), true);
-});
-
 test("immersive scene module keys preserve project-specific presets", () => {
   assert.equal(getSceneModuleKey("motor-lab"), "motor-lab");
   assert.equal(getSceneModuleKey("signal"), "signal");
   assert.equal(getSceneModuleKey("orbit"), "signal");
-});
-
-test("motor lab renderer caps density and enables direct manipulation", () => {
-  assert.deepEqual(getMotorLabRendererConfig(3), { pixelRatio: 1.5, interactive: true });
-});
-
-test("motor lab readout keeps diagnostic and part labels stable", () => {
-  assert.deepEqual(getMotorLabReadout("encoder", true), {
-    modeLabel: "诊断模式",
-    partLabel: "编码器与零位",
-    commandLabel: "退出诊断模式"
-  });
 });
 
 test("motor story progress moves through assembled, explosion, handoff, and timeline stages", () => {

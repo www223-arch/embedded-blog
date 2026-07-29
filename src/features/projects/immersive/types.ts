@@ -14,6 +14,5 @@ export type ProjectChapter = {
 export type ImmersiveSceneController = {
   setActiveChapter(index: number): void;
   setProgress?(progress: number): void;
-  setDiagnosticMode?(active: boolean): void;
   dispose(): void;
 };
