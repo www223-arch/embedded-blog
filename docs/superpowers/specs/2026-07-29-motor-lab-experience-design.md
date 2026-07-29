@@ -151,4 +151,3 @@ file may add richer hotspots only when real project material warrants it.
 - Leaving and re-entering the project never creates a second canvas or listener.
 - Focused tests, content tests, TypeScript, production build, and desktop/mobile
   browser checks pass before delivery.
-

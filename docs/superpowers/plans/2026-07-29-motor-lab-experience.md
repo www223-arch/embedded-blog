@@ -127,4 +127,3 @@ export function mountMotorLabScene(host: HTMLElement, chapters: ProjectChapter[]
 - The existing signal scene remains behind the same common controller contract.
 - No camera coordinates or component positions enter Markdown.
 - There are no placeholders or dependencies on unavailable project media.
-
