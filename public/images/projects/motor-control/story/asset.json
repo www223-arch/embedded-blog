@@ -1,0 +1,8 @@
+{
+  "frameCount": 80,
+  "framePattern": "/images/projects/motor-control/story/frame-{frame}.webp",
+  "poster": "/images/projects/motor-control/story/poster.webp",
+  "source": "https://mjbots.com/products/qdd100-beta-3",
+  "attribution": "qdd100 beta 3 mechanical reference courtesy of mjbots",
+  "referenceOnly": true
+}
