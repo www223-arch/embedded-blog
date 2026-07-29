@@ -5,6 +5,7 @@ import { mountHomeParticles } from "../features/home/fx";
 import { mountScrollEffect } from "../features/home/scrollEffect";
 import { renderDocs, bindDocFilter } from "../features/docs/view";
 import { renderProjects, bindProjectClick } from "../features/projects/view";
+import { getProjectBackgroundConfig } from "../features/projects/background";
 import { renderProjectExperience, selectProjectExperience } from "../features/projects/experience";
 import { mountImmersiveProjectExperience } from "../features/projects/immersive/motion";
 import { renderLife, bindLifeFilter } from "../features/life/view";
@@ -219,6 +220,7 @@ function renderProjectDetail(projectId: string, runId: number): void {
   const base = import.meta.env.BASE_URL;
   const theme = document.documentElement.getAttribute("data-theme") || "light";
   const immersive = selectProjectExperience(project) === "immersive";
+  const background = getProjectBackgroundConfig(project, base);
   view.className = immersive ? "project-detail project-detail-immersive" : "project-detail";
   sidebarContainer.innerHTML = "";
   document.title = `Embedded Blog | ${project.title}`;
@@ -241,10 +243,10 @@ function renderProjectDetail(projectId: string, runId: number): void {
   });
 
   view.innerHTML = detailPage(
-    immersive ? "project-detail-page immersive-project-page" : "project-detail-page",
+    [immersive ? "project-detail-page immersive-project-page" : "project-detail-page", background.className].filter(Boolean).join(" "),
     theme,
-    `${base}xiangmuzuopingbaitian.jpg`,
-    `${base}xiangmuzuopingheitian.jpg`,
+    background.light,
+    background.dark,
     renderProjectExperience(project, renderStandardProject)
   );
 
@@ -334,13 +336,21 @@ function detailPage(pageClass: string, theme: string, lightBg: string, darkBg: s
     <div class="main-content">
       <div class="page-wrapper ${pageClass}">
         <div class="bg-slider">
-          <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${lightBg}"></div>
-          <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${darkBg}"></div>
+          <div class="bg-slide bg-slide-light ${theme === "light" ? "active" : ""}" data-bg="${escapeAttribute(lightBg)}"></div>
+          <div class="bg-slide bg-slide-dark ${theme === "dark" ? "active" : ""}" data-bg="${escapeAttribute(darkBg)}"></div>
         </div>
         ${content}
       </div>
     </div>
   `;
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function mountDetailView(view: HTMLElement): void {

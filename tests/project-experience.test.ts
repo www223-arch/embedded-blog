@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { ProjectItem } from "../src/content/schema.ts";
 import { selectProjectExperience } from "../src/features/projects/experience.ts";
+import { getProjectBackgroundConfig } from "../src/features/projects/background.ts";
 import { buildProjectChapters, getProjectDocumentRoute, isMotorLabPreset, renderImmersiveProject } from "../src/features/projects/immersive/view.ts";
 import { createSignalOrbitState } from "../src/features/projects/immersive/sceneState.ts";
 import { getSignalOrbitRendererConfig } from "../src/features/projects/immersive/scene.ts";
@@ -16,6 +17,24 @@ test("project experience uses the ordinary shell by default", () => {
 
 test("project experience enables the immersive shell explicitly", () => {
   assert.equal(selectProjectExperience({ presentation: "immersive" }), "immersive");
+});
+
+test("project backgrounds stay optional and resolve project-local assets", () => {
+  const ordinary = projectWith([]);
+  assert.deepEqual(getProjectBackgroundConfig(ordinary, "/embedded-blog/"), {
+    light: "/embedded-blog/xiangmuzuopingbaitian.jpg",
+    dark: "/embedded-blog/xiangmuzuopingheitian.jpg",
+    className: ""
+  });
+
+  ordinary.backgroundImage = "/images/projects/motor-control/background.jpg";
+  ordinary.backgroundPosition = "top";
+  ordinary.backgroundTone = "strong";
+  assert.deepEqual(getProjectBackgroundConfig(ordinary, "/embedded-blog/"), {
+    light: "/embedded-blog/images/projects/motor-control/background.jpg",
+    dark: "/embedded-blog/images/projects/motor-control/background.jpg",
+    className: "project-background-custom project-background-top project-background-strong"
+  });
 });
 
 test("immersive chapters preserve milestone order and active status", () => {
@@ -171,6 +190,9 @@ function projectWith(narrativeBlocks: ProjectItem["narrativeBlocks"]): ProjectIt
     presentation: "immersive",
     narrative: "chronicle",
     visualPreset: "signal",
+    backgroundImage: "",
+    backgroundPosition: "center",
+    backgroundTone: "balanced",
     updatedAt: "2026-07-28",
     currentFocus: "Encoder calibration",
     narrativeBlocks,

@@ -2022,6 +2022,37 @@ body:has(.life-header.fixed) .bg-navigation {
   background-position: center 25%;
 }
 
+.project-detail-page.project-background-custom {
+  --project-background-overlay: 0.48;
+}
+
+.project-detail-page.project-background-custom .bg-slide {
+  filter: saturate(0.72) brightness(0.68) contrast(1.06);
+  transform: scale(1.015);
+}
+
+.project-detail-page.project-background-custom .bg-slider::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: rgba(2, 7, 13, var(--project-background-overlay));
+  pointer-events: none;
+}
+
+.project-detail-page.project-background-soft {
+  --project-background-overlay: 0.28;
+}
+
+.project-detail-page.project-background-strong {
+  --project-background-overlay: 0.66;
+}
+
+.project-detail-page.project-background-top .bg-slide { background-position: center top; }
+.project-detail-page.project-background-bottom .bg-slide { background-position: center bottom; }
+.project-detail-page.project-background-left .bg-slide { background-position: left center; }
+.project-detail-page.project-background-right .bg-slide { background-position: right center; }
+
 .life-detail-page .bg-slide-light {
   background-image: url('var(--base-url)guosai2.jpg');
   background-position: center 30%;

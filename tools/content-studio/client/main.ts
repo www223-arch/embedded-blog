@@ -990,7 +990,10 @@ function metadataFor(detail: ContentDetail): FieldDef[] {
       { key: "role", label: "角色", kind: "text" },
       { key: "stack", label: "技术栈", kind: "csv", wide: true },
       { key: "highlights", label: "亮点", kind: "lines", wide: true },
-      { key: "gallery", label: "图集", kind: "lines", wide: true }
+      { key: "gallery", label: "图集", kind: "lines", wide: true },
+      { key: "backgroundImage", label: "详情背景图", kind: "text", wide: true },
+      { key: "backgroundPosition", label: "背景焦点", kind: "select", options: ["center", "top", "bottom", "left", "right"] },
+      { key: "backgroundTone", label: "背景遮罩", kind: "select", options: ["soft", "balanced", "strong"] }
     ];
   }
 

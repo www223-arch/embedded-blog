@@ -55,6 +55,9 @@ test("project presentation fields default to the ordinary project experience", (
   assert.equal(project.presentation, "standard");
   assert.equal(project.narrative, "chronicle");
   assert.equal(project.visualPreset, "orbit");
+  assert.equal(project.backgroundImage, "");
+  assert.equal(project.backgroundPosition, "center");
+  assert.equal(project.backgroundTone, "balanced");
   assert.equal(project.updatedAt, "");
   assert.equal(project.currentFocus, "");
   assert.deepEqual(project.narrativeBlocks, []);
@@ -110,10 +113,15 @@ test("project presentation accepts a custom motor lab visual preset", () => {
     status: "published",
     projectStage: "building",
     presentation: "immersive",
-    visualPreset: "motor-lab"
+    visualPreset: "motor-lab",
+    backgroundImage: "/images/projects/motor-control/background.jpg",
+    backgroundPosition: "center",
+    backgroundTone: "strong"
   });
 
   assert.equal(project.visualPreset, "motor-lab");
+  assert.equal(project.backgroundImage, "/images/projects/motor-control/background.jpg");
+  assert.equal(project.backgroundTone, "strong");
 });
 
 test("narrative blocks preserve source order and safe media", () => {

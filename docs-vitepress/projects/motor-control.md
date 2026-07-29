@@ -20,6 +20,9 @@ projectStage: building
 presentation: immersive
 narrative: chronicle
 visualPreset: motor-lab
+backgroundImage: /images/projects/motor-control/background-nasa-vacuum.jpg
+backgroundPosition: center
+backgroundTone: strong
 updatedAt: 2026-07-29
 currentFocus: 速度波动优化与编码器校准
 ---

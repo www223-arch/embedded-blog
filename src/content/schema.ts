@@ -14,6 +14,14 @@ export const projectVisualPresetSchema = z.preprocess(
   (value) => value === "" ? undefined : value,
   z.enum(["orbit", "signal", "archive", "motor-lab"]).default("orbit")
 );
+export const projectBackgroundPositionSchema = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.enum(["center", "top", "bottom", "left", "right"]).default("center")
+);
+export const projectBackgroundToneSchema = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.enum(["soft", "balanced", "strong"]).default("balanced")
+);
 export const narrativeBlockSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("milestone"),
@@ -70,6 +78,9 @@ export const projectSchema = z.object({
   presentation: projectPresentationSchema,
   narrative: projectNarrativeSchema,
   visualPreset: projectVisualPresetSchema,
+  backgroundImage: z.string().default(""),
+  backgroundPosition: projectBackgroundPositionSchema,
+  backgroundTone: projectBackgroundToneSchema,
   updatedAt: z.string().default(""),
   currentFocus: z.string().default(""),
   narrativeBlocks: z.array(narrativeBlockSchema).default([]),
